@@ -4,10 +4,9 @@ const { token } = require('./config.json');
 
 
 
-// Create a new client instance
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
 
-// When the client is ready, run this code (only once)
+
 
 
 client.once('ready', () => {
@@ -31,41 +30,39 @@ client.on("messageCreate", async (message) => {
             }).catch(error => console.log(error))
         
             const {id} = summonerIdData.data
-            console.log(id)
 
-            const rankedData = await axios.get(`https://br1.api.riotgames.com/lol/league/v4/entries/by-summoner/${id}`, {
+
+            const championMaestry =  await axios.get(`https://br1.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-summoner/${id}`, {
                 headers: {'X-Riot-Token': 'RGAPI-ba3d44b9-e23d-43df-9889-75ef4c7abd88'}
-            })
+            }).catch(error => console.log(error))
 
-            if(rankedData.data.length === 1) {
-                message.reply({content: `
-            Eai ${rankedData.data[0].summonerName}, tranquilo? Parece que encontramos seus dados de invocador:
+            const {championId, championPoints, championLevel} = championMaestry.data[0]
 
-            Nickname: ${rankedData.data[0].summonerName}
+            const champion =  await axios.get(`http://ddragon.leagueoflegends.com/cdn/12.6.1/data/en_US/champion.json`, {
+                headers: {'X-Riot-Token': 'RGAPI-ba3d44b9-e23d-43df-9889-75ef4c7abd88'}
+            }).catch(error => console.log(error))
 
-            Informações da Solo Queue: 
-            
-            Ranking:${rankedData.data[0].tier}
-            Pontos: ${rankedData.data[0].leaguePoints}
-            Wins: ${rankedData.data[0].wins}
-            Losses: ${rankedData.data[0].losses}
-
-        ` , allowedMentions: false})
-            }else {
-                message.reply({content: `
-                Eai ${rankedData.data[1].summonerName}, tranquilo? Parece que encontramos seus dados de invocador:
-    
-                Nickname: ${rankedData.data[1].summonerName}
-    
-                Informações da Solo Queue: 
+           
+            for (var [key, value] of Object.entries(champion.data["data"])) {
                 
-                Ranking:${rankedData.data[1].tier}
-                Pontos: ${rankedData.data[1].leaguePoints}
-                Wins: ${rankedData.data[1].wins}
-                Losses: ${rankedData.data[1].losses}
-    
-            ` , allowedMentions: false})
-            }
+                if(value.key === championId.toString()){
+
+                    const mastery = {
+                        championName: value.id,
+                        championPoints: championPoints,
+                        masteryLevel: championLevel
+                    }
+
+                    message.reply({content: `
+                    Hey ${summonerName}, sua maior maestria é com: 
+                    
+                    Champion: ${mastery.championName}
+                    Nível da maestria: ${mastery.masteryLevel}
+                    Pontos de maestria: ${championPoints} points
+                    `})
+                }
+                   
+            }  
             
         }  
     
