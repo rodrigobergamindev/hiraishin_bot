@@ -63,7 +63,6 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
                    .setTitle(`${mastery.championName}`)
                    .setAuthor({ name: `${summonerName}`})
                    .setDescription(`${mastery.title}`)
-                   .setThumbnail('https://img.icons8.com/color/48/000000/league-of-legends.png')
                    .addFields(
                        { name: 'Campeão', value: `${mastery.championName}`, inline: true },
                        { name: 'Pontos de Maestria', value: `${new Intl.NumberFormat('pt-BR').format(championPoints)} pontos`, inline: true },
@@ -124,7 +123,7 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
                         .setTitle(`${soloQueue.tier} ${soloQueue.rank}`)
                         .setAuthor({ name: `${summonerName}`})
                         .setDescription(`Win Rate ${winRate}%`)
-                        .setThumbnail('https://img.icons8.com/color/48/000000/league-of-legends.png')
+
                         .addFields(
                             { name: 'Vitórias', value: `${soloQueue.wins}`, inline: true },
                             { name: 'Derrotas', value: `${soloQueue.losses}`, inline: true },
@@ -143,7 +142,7 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
                         .setTitle('UNRANKED')
                         .setAuthor({ name: `${summonerName}`})
                         .setDescription(`Win Rate 0%`)
-                        .setThumbnail('https://img.icons8.com/color/48/000000/league-of-legends.png')
+
                         .addFields(
                             { name: 'Vitórias', value: `0`, inline: true },
                             { name: 'Derrotas', value: `0`, inline: true },
