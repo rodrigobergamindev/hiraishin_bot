@@ -84,7 +84,7 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
 
 
            } catch (error) {
-            message.channel.send({content: 'Erro ao localizar invador, por favor entre em contato com o suporte'})
+            message.channel.send({content: 'Erro ao localizar invocador, por favor entre em contato com o suporte'})
            }
 
 
