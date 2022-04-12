@@ -25,52 +25,71 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
            
    
             
-            const summonerIdData =  await axios.get(`https://br1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${summonerName}`, {
-                headers: {'X-Riot-Token': `${process.env.RIOT_API_KEY}`}
-            }).catch(error => console.log(error))
-        
-            const {id} = summonerIdData.data
-
-
-            const championMaestry =  await axios.get(`https://br1.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-summoner/${id}`, {
-                headers: {'X-Riot-Token': `${process.env.RIOT_API_KEY}`}
-            }).catch(error => console.log(error))
-
-            const {championId, championPoints, championLevel} = championMaestry.data[0]
-
-            const champion =  await axios.get(`http://ddragon.leagueoflegends.com/cdn/12.6.1/data/en_US/champion.json`, {
-                headers: {'X-Riot-Token': `${process.env.RIOT_API_KEY}`}
-            }).catch(error => console.log(error))
-
-
-            const championData = Object.entries(champion.data["data"]).find(data => data[1].key === championId.toString())
-
-           const mastery = {
-            championName: championData[0],
-            championPoints: championPoints,
-            masteryLevel: championLevel,
-            title: championData[1].title,
-            icon: `http://ddragon.leagueoflegends.com/cdn/img/champion/splash/${championData[0]}_0.jpg`
-           }
+           try {
+                const summonerData =  await axios.get(`https://br1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${summonerName}`, {
+                    headers: {'X-Riot-Token': `${process.env.RIOT_API_KEY}`}
+                }).catch(error => console.log(error))
             
-           const masteryEmbed = new MessageEmbed()
-	                    .setColor('#ff3838')
-                        .setTitle(`${mastery.championName}`)
-                        .setAuthor({ name: `${summonerName}`})
-                        .setDescription(`${mastery.title}`)
-                        .setThumbnail('https://img.icons8.com/color/48/000000/league-of-legends.png')
-                        .addFields(
-                            { name: 'Campeão', value: `${mastery.championName}`, inline: true },
-                            { name: 'Pontos de Maestria', value: `${new Intl.NumberFormat('pt-BR').format(championPoints)} pontos`, inline: true },
-                            { name: 'Nível da Maestria', value: `${mastery.masteryLevel}` , inline: true },
-                        )
-                        .setImage(`${mastery.icon}`)
-                        .setTimestamp()
-                        .setFooter({ text: 'Que os deuses estejam com você', iconURL: 'https://cdn.discordapp.com/attachments/963135769394954273/963288526303162388/unknown.png' });
-                                    
-                        message.channel.send({
-                            embeds: [masteryEmbed]
-                        })
+                const {id} = summonerData.data
+
+                if(id){
+                    const championMaestry =  await axios.get(`https://br1.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-summoner/${id}`, {
+                        headers: {'X-Riot-Token': `${process.env.RIOT_API_KEY}`}
+                    }).catch(error => console.log(error))
+        
+                    const {championId, championPoints, championLevel} = championMaestry.data[0]
+        
+                    const champion =  await axios.get(`http://ddragon.leagueoflegends.com/cdn/12.6.1/data/en_US/champion.json`, {
+                        headers: {'X-Riot-Token': `${process.env.RIOT_API_KEY}`}
+                    }).catch(error => console.log(error))
+        
+        
+                    const championData = Object.entries(champion.data["data"]).find(data => data[1].key === championId.toString())
+                    
+                    if(championData){
+
+                        const mastery = {
+                            championName: championData[0],
+                            championPoints: championPoints,
+                            masteryLevel: championLevel,
+                            title: championData[1].title,
+                            icon: `http://ddragon.leagueoflegends.com/cdn/img/champion/splash/${championData[0]}_0.jpg`
+                           }
+
+
+                             
+                   const masteryEmbed = new MessageEmbed()
+                   .setColor('#ff3838')
+                   .setTitle(`${mastery.championName}`)
+                   .setAuthor({ name: `${summonerName}`})
+                   .setDescription(`${mastery.title}`)
+                   .setThumbnail('https://img.icons8.com/color/48/000000/league-of-legends.png')
+                   .addFields(
+                       { name: 'Campeão', value: `${mastery.championName}`, inline: true },
+                       { name: 'Pontos de Maestria', value: `${new Intl.NumberFormat('pt-BR').format(championPoints)} pontos`, inline: true },
+                       { name: 'Nível da Maestria', value: `${mastery.masteryLevel}` , inline: true },
+                   )
+                   .setImage(`${mastery.icon}`)
+                   .setTimestamp()
+                   .setFooter({ text: 'Que os deuses estejam com você', iconURL: 'https://cdn.discordapp.com/attachments/963135769394954273/963288526303162388/unknown.png' });
+                               
+                   message.channel.send({
+                       embeds: [masteryEmbed]
+                   })
+
+                    }else{
+                        message.channel.send({content: 'Dados do campeão não encontrado, por favor entre em contato com o suporte'})
+                    }
+                  
+                }
+
+               
+    
+
+           } catch (error) {
+               
+           }
+
 
             
         } 
