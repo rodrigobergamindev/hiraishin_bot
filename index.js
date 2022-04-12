@@ -1,27 +1,29 @@
 const { default: axios } = require('axios');
 const { Client, Intents } = require('discord.js');
-const { token } = require('./config.json');
-
+const { SlashCommandBuilder } = require('@discordjs/builders');
+const { REST } = require('@discordjs/rest');
+const { Routes } = require('discord-api-types/v9');
+const { clientId, guildId, token } = require('./config.json');
 
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
 
 
-
-
-client.once('ready', () => {
-	console.log('Ready!');
+    client.once('ready', () => {
+        console.log('Ready!');
+    });
     
-});
 
 
-client.on("messageCreate", async (message) => {
+     
+
+ client.on("messageCreate", async (message) => {
     if(message.author.bot) return
         console.log(`Message from ${message.author.username}: ${message.content}`);
     
 
         if(message.content.includes('summoner mastery')) {
-            const summonerName = message.content.split('-')[1]
+            const summonerName = message.content.split('- ')[1]
            
    
             
@@ -65,8 +67,11 @@ client.on("messageCreate", async (message) => {
             }  
             
         }  
-    
+ 
   });
+ 
+
+
 
 
 client.login(token);
