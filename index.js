@@ -28,20 +28,20 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
            try {
                 const summonerData =  await axios.get(`https://br1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${summonerName}`, {
                     headers: {'X-Riot-Token': `${process.env.RIOT_API_KEY}`}
-                }).catch(error => console.log(error))
+                })
             
                 const {id} = summonerData.data
 
                 if(id){
                     const championMaestry =  await axios.get(`https://br1.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-summoner/${id}`, {
                         headers: {'X-Riot-Token': `${process.env.RIOT_API_KEY}`}
-                    }).catch(error => console.log(error))
+                    })
         
                     const {championId, championPoints, championLevel} = championMaestry.data[0]
         
                     const champion =  await axios.get(`http://ddragon.leagueoflegends.com/cdn/12.6.1/data/en_US/champion.json`, {
                         headers: {'X-Riot-Token': `${process.env.RIOT_API_KEY}`}
-                    }).catch(error => console.log(error))
+                    })
         
         
                     const championData = Object.entries(champion.data["data"]).find(data => data[1].key === championId.toString())
@@ -83,11 +83,9 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
                   
                 }
 
-               
-    
 
            } catch (error) {
-               
+            message.channel.send({content: 'Erro ao localizar invador, por favor entre em contato com o suporte'})
            }
 
 
