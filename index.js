@@ -12,12 +12,23 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
     });
     
 
+
+
      
 
  client.on("messageCreate", async (message) => {
      
+
+    if(message.content === '$oraculo'){
+        message.channel.send({content: `Estou aqui para servir, ${message.author.username} em que posso ser útil?\n`})
+    }
+
+    if(message.content.includes('$oraculo commands')){
+        message.channel.send({content: `summoner mastery - nome do invocador (Encontre o campeão com maior maestria)\nsummoner ranking - nome do invocador (Encontrar ranking de um invocador *apenas SoloQueue*) \n
+        `})
+    }
         if(message.author.bot) return
-        console.log(`Message from ${message.author.username}: ${message.content}`);
+        
 
         
         if(message.content.includes('summoner mastery')) {
@@ -26,12 +37,12 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
     
             
            try {
-                const summonerData =  await axios.get(`https://br1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${summonerName}`, {
+                const summonerData =  await axios.get(encodeURI(`https://br1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${summonerName}`), {
                     headers: {'X-Riot-Token': `${process.env.RIOT_API_KEY}`}
                 })
             
                 const {id} = summonerData.data
-
+               
                 if(id){
                     const championMaestry =  await axios.get(`https://br1.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-summoner/${id}`, {
                         headers: {'X-Riot-Token': `${process.env.RIOT_API_KEY}`}
@@ -84,6 +95,7 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
 
 
            } catch (error) {
+               console.log(error)
             message.channel.send({content: 'Erro ao localizar invocador, por favor entre em contato com o suporte'})
            }
 
