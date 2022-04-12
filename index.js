@@ -20,7 +20,7 @@ client.on("messageCreate", async (message) => {
         console.log(`Message from ${message.author.username}: ${message.content}`);
     
 
-        if(message.content.includes('summoner name')) {
+        if(message.content.includes('summoner mastery')) {
             const summonerName = message.content.split('-')[1]
            
    
