@@ -12,12 +12,11 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
     });
     
 
-
      
 
  client.on("messageCreate", async (message) => {
      
-    if(message.author.bot) return
+        if(message.author.bot) return
         console.log(`Message from ${message.author.username}: ${message.content}`);
 
         
@@ -81,65 +80,72 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
            
    
             
-            const summonerIdData =  await axios.get(`https://br1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${summonerName}`, {
-                headers: {'X-Riot-Token': `${process.env.RIOT_API_KEY}`}
-            }).catch(error => console.log(error))
-        
-            const {id} = summonerIdData.data
-
-
-            const rankingData = await axios.get(`https://br1.api.riotgames.com/lol/league/v4/entries/by-summoner/${id}`, {
-                headers: {'X-Riot-Token': 'RGAPI-ba3d44b9-e23d-43df-9889-75ef4c7abd88'}
-            })
-
-            if(rankingData.data){
-                const soloQueue = rankingData.data.find(ranking => ranking.queueType === 'RANKED_SOLO_5x5')
-
-                
-                
-                if(soloQueue) {
-                    const winRate = ((soloQueue.wins/(soloQueue.wins + soloQueue.losses)) * 100).toFixed(1)
-                    const rankingEmbed = new MessageEmbed()
-                    .setColor('#ff3838')
-                    .setTitle(`${soloQueue.tier} ${soloQueue.rank}`)
-                    .setAuthor({ name: `${summonerName}`})
-                    .setDescription(`Win Rate ${winRate}%`)
-                    .setThumbnail('https://img.icons8.com/color/48/000000/league-of-legends.png')
-                    .addFields(
-                        { name: 'Vitórias', value: `${soloQueue.wins}`, inline: true },
-                        { name: 'Derrotas', value: `${soloQueue.losses}`, inline: true },
-                        { name: 'Pontos de Liga', value: `${soloQueue.leaguePoints} pontos` , inline: true },
-                    )
-                    .setImage(`https://raw.githubusercontent.com/InFinity54/LoL_DDragon/master/extras/tier/${soloQueue.tier.toLowerCase()}.png`)
-                    .setTimestamp()
-                    .setFooter({ text: 'A sorte favorece os corajosos', iconURL: 'https://cdn.discordapp.com/attachments/963135769394954273/963288526303162388/unknown.png' });
-                                
-                    message.channel.send({
-                        embeds: [rankingEmbed]
-                    })
-                }else {
-                    const rankingEmbed = new MessageEmbed()
-                    .setColor('#ff3838')
-                    .setTitle('UNRANKED')
-                    .setAuthor({ name: `${summonerName}`})
-                    .setDescription(`Win Rate 0%`)
-                    .setThumbnail('https://img.icons8.com/color/48/000000/league-of-legends.png')
-                    .addFields(
-                        { name: 'Vitórias', value: `0`, inline: true },
-                        { name: 'Derrotas', value: `0`, inline: true },
-                        { name: 'Pontos de Liga', value: `0` , inline: true },
-                    )
-                    .setImage('https://raw.githubusercontent.com/InFinity54/LoL_DDragon/master/extras/tier/unranked.png')
-                    .setTimestamp()
-                    .setFooter({ text: 'A sorte favorece os corajosos', iconURL: 'https://cdn.discordapp.com/attachments/963135769394954273/963288526303162388/unknown.png' });
-                                
-                    message.channel.send({
-                        embeds: [rankingEmbed]
-                    })
-                }
-            }
-
+           try {
+                const summonerData =  await axios.get(`https://br1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${summonerName}`, {
+                    headers: {'X-Riot-Token': `${process.env.RIOT_API_KEY}`}
+                })
             
+                const {id} = summonerData.data
+
+
+
+                if(id){
+                    const rankingData = await axios.get(`https://br1.api.riotgames.com/lol/league/v4/entries/by-summoner/${id}`, {
+                    headers: {'X-Riot-Token': 'RGAPI-ba3d44b9-e23d-43df-9889-75ef4c7abd88'}
+                })
+                
+                
+                if(rankingData.data){
+                    const soloQueue = rankingData.data.find(ranking => ranking.queueType === 'RANKED_SOLO_5x5')
+    
+                    
+                    
+                    if(soloQueue) {
+                        const winRate = ((soloQueue.wins/(soloQueue.wins + soloQueue.losses)) * 100).toFixed(1)
+                        const rankingEmbed = new MessageEmbed()
+                        .setColor('#ff3838')
+                        .setTitle(`${soloQueue.tier} ${soloQueue.rank}`)
+                        .setAuthor({ name: `${summonerName}`})
+                        .setDescription(`Win Rate ${winRate}%`)
+                        .setThumbnail('https://img.icons8.com/color/48/000000/league-of-legends.png')
+                        .addFields(
+                            { name: 'Vitórias', value: `${soloQueue.wins}`, inline: true },
+                            { name: 'Derrotas', value: `${soloQueue.losses}`, inline: true },
+                            { name: 'Pontos de Liga', value: `${soloQueue.leaguePoints} pontos` , inline: true },
+                        )
+                        .setImage(`https://raw.githubusercontent.com/InFinity54/LoL_DDragon/master/extras/tier/${soloQueue.tier.toLowerCase()}.png`)
+                        .setTimestamp()
+                        .setFooter({ text: 'A sorte favorece os corajosos', iconURL: 'https://cdn.discordapp.com/attachments/963135769394954273/963288526303162388/unknown.png' });
+                                    
+                        message.channel.send({
+                            embeds: [rankingEmbed]
+                        })
+                    }else {
+                        const rankingEmbed = new MessageEmbed()
+                        .setColor('#ff3838')
+                        .setTitle('UNRANKED')
+                        .setAuthor({ name: `${summonerName}`})
+                        .setDescription(`Win Rate 0%`)
+                        .setThumbnail('https://img.icons8.com/color/48/000000/league-of-legends.png')
+                        .addFields(
+                            { name: 'Vitórias', value: `0`, inline: true },
+                            { name: 'Derrotas', value: `0`, inline: true },
+                            { name: 'Pontos de Liga', value: `0` , inline: true },
+                        )
+                        .setImage('https://raw.githubusercontent.com/InFinity54/LoL_DDragon/master/extras/tier/unranked.png')
+                        .setTimestamp()
+                        .setFooter({ text: 'A sorte favorece os corajosos', iconURL: 'https://cdn.discordapp.com/attachments/963135769394954273/963288526303162388/unknown.png' });
+                                    
+                        message.channel.send({
+                            embeds: [rankingEmbed]
+                        })
+                    }
+                }
+                }
+
+           } catch (error) {
+               message.channel.send({content: 'Não consegui localizar o invocador, por favor entre em contato o suporte'})
+           }          
 
             
         } 
