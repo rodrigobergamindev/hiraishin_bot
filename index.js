@@ -23,7 +23,7 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
         if(message.content.includes('summoner mastery')) {
             const summonerName = message.content.split('- ')[1]
            
-   
+    
             
            try {
                 const summonerData =  await axios.get(`https://br1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${summonerName}`, {
