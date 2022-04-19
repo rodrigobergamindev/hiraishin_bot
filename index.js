@@ -320,7 +320,7 @@ client.once('ready', async data => {
                                 )
                                 .setImage(`${mastery.icon}`)
                                 .setTimestamp()
-                                .setFooter({ text: 'Que os deuses estejam com você', iconURL: 'https://cdn.discordapp.com/attachments/963135769394954273/963288526303162388/unknown.png' });
+                                .setFooter({ text: 'A sorte favorece os corajosos', iconURL: 'https://cdn.discordapp.com/attachments/963135769394954273/963288526303162388/unknown.png' });
                                             
                                 message.channel.send({
                                     embeds: [roleEmbed]
@@ -397,7 +397,7 @@ client.once('ready', async data => {
                             )
                             .setImage(`https://raw.githubusercontent.com/InFinity54/LoL_DDragon/master/extras/tier/${soloQueue.tier.toLowerCase()}.png`)
                              .setTimestamp()
-                             .setFooter({ text: 'Que os deuses estejam com você', iconURL: 'https://cdn.discordapp.com/attachments/963135769394954273/963288526303162388/unknown.png' });
+                             .setFooter({ text: 'A sorte favorece os corajosos', iconURL: 'https://cdn.discordapp.com/attachments/963135769394954273/963288526303162388/unknown.png' });
                                          
                              message.channel.send({
                                  embeds: [roleEmbed]
@@ -437,7 +437,7 @@ client.once('ready', async data => {
                             )
                             .setImage(`https://raw.githubusercontent.com/InFinity54/LoL_DDragon/master/extras/tier/${flexQueue.tier.toLowerCase()}.png`)
                              .setTimestamp()
-                             .setFooter({ text: 'Que os deuses estejam com você', iconURL: 'https://cdn.discordapp.com/attachments/963135769394954273/963288526303162388/unknown.png' });
+                             .setFooter({ text: 'A sorte favorece os corajosos', iconURL: 'https://cdn.discordapp.com/attachments/963135769394954273/963288526303162388/unknown.png' });
                                          
                              message.channel.send({
                                  embeds: [roleEmbed]
@@ -482,9 +482,9 @@ client.once('ready', async data => {
                                     { name: '$set my main - seu nome de invocador', value: 'Ganhe um cargo especial com base no seu main' },
                                     { name: '$set my ranking - seu nome de invocador', value: 'Ganhe um cargo especial com base no seu ranking' }
                                 )
-                                .setImage('https://i.imgur.com/nLKy3QN.png')
+                                .setImage('https://i.imgur.com/FzFrWLJ.png')
                                 .setTimestamp()
-                                .setFooter({ text: 'Fortis Fortuna Adiuvat', iconURL: 'https://i.imgur.com/zoGWQy3.jpeg' });
+                                .setFooter({ text: 'A sorte favorece os corajosos', iconURL: 'https://cdn.discordapp.com/attachments/963135769394954273/963288526303162388/unknown.png' });
 
                             
                         interaction.reply({embeds: [embed]})
