@@ -475,10 +475,10 @@ client.once('ready', async data => {
                                 .addFields(
                                     { name: '\u200b', value: '\u200b', inline: false, },
                                     { name: '/oraculo', value: 'lista com todos os comandos' },
-                                    { name: '$summoner mastery - nome do invocador', value: 'lista com os três campeões de maior maestria' },
+                                    { name: '$summoner mastery - nome do invocador', value: 'retorna o campeão de maior maestria do jogador' },
                                     { name: '$summoner ranking - nome do invocador', value: 'lista com os elos do jogador' },
                                     { name: '$set my main - seu nome de invocador', value: 'Ganhe um cargo especial com base no seu main' },
-                                    { name: '$set my main - seu nome de invocador', value: 'Ganhe um cargo especial com base no seu ranking' }
+                                    { name: '$set my ranking - seu nome de invocador', value: 'Ganhe um cargo especial com base no seu ranking' }
                                 )
                                 .setImage('https://i.imgur.com/kXUfcbD.png')
                                 .setTimestamp()
