@@ -1,16 +1,30 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
+const { REST } = require('@discordjs/rest');
 const { default: axios } = require('axios');
 const { Client, Intents, MessageEmbed } = require('discord.js');
+const { Routes } = require('discord-api-types/v9');
 require('dotenv').config();
 
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
 
 
-    client.once('ready', () => {
-       
-       console.log('Ready!')
-    });
+client.once('ready', async data => {
+    console.log('ready')
+
+    const commands = [
+        new SlashCommandBuilder().setName('oraculo').setDescription('Obtenha uma lista com os meus comandos.'),
+        ].map(command => command.toJSON());
     
+    const rest = new REST({ version: '9' }).setToken(process.env.SECRET_TOKEN_DISCORD);
+    
+    rest.put(Routes.applicationCommands(process.env.CLIENT_ID_DISCORD), { body: commands })
+        .then(() => console.log('Successfully registered application commands.'))
+        .catch(console.error);
+    
+        const Guilds = client.guilds.cache.map((guild) => guild);
+        await Guilds[0].members.fetch().then(console.log).catch(console.error);
+});
 
 
 
@@ -18,22 +32,13 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
 
  client.on("messageCreate", async (message) => {
      
-
-    if(message.content === '$oraculo'){
-        message.channel.send({content: `Estou aqui para servir, ${message.author.username} em que posso ser útil?\n`})
-    }
-
-    if(message.content.includes('$oraculo commands')){
-        message.channel.send({content: `summoner mastery - nome do invocador (Encontre o campeão com maior maestria)\nsummoner ranking - nome do invocador (Encontrar ranking de um invocador *apenas SoloQueue*) \n
-        `})
-    }
         if(message.author.bot) return
         
 
         
-        if(message.content.includes('summoner mastery')) {
-            const summonerName = message.content.split('- ')[1]
-           
+        if(message.content.includes('$summoner mastery')) {
+            const summonerName = message.content.split('-')[1].trim()
+           console.log(summonerName)
     
             
            try {
@@ -72,7 +77,9 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
                    const masteryEmbed = new MessageEmbed()
                    .setColor('#ff3838')
                    .setTitle(`${mastery.championName}`)
+                   .setURL(encodeURI(`https://u.gg/lol/profile/br1/${summonerName}/overview`))
                    .setAuthor({ name: `${summonerName}`})
+                   .setThumbnail('https://img.icons8.com/color/64/000000/league-of-legends.png')
                    .setDescription(`${mastery.title}`)
                    .addFields(
                        { name: 'Campeão', value: `${mastery.championName}`, inline: true },
@@ -103,8 +110,8 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
             
         } 
 
-        if(message.content.includes('summoner ranking')) {
-            const summonerName = message.content.split('- ')[1]
+        if(message.content.includes('$summoner ranking')) {
+            const summonerName = message.content.split('-')[1].trim()
            
    
             
@@ -181,7 +188,37 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
 
 
 
+  client.on('interactionCreate', async interaction => {
+	if (!interaction.isCommand()) return;
+ 
+	const { commandName } = interaction;
 
+    switch (commandName) {
+        case 'oraculo':
+            const embed = new MessageEmbed()
+                                .setColor('#ff3838')
+                                .setTitle('Bem-vindo ao Oráculo!')
+                                .setAuthor({name: `Oráculo`})
+                                .setDescription(`Informações sobre invocadores, campeões, glossário e mais. Busque informações sobre as suas filas ranqueadas e maestria e ganhe um cargo especial com base no seu main e pontuação de maestria.`)
+                                .setThumbnail('https://img.icons8.com/color/64/000000/league-of-legends.png')
+                                .addFields(
+                                    { name: '\u200b', value: '\u200b', inline: false, },
+                                    { name: '/oraculo', value: 'lista com todos os comandos' },
+                                    { name: '$mastery - nome do invocador', value: 'lista com os três campeões de maior maestria' },
+                                    { name: '$ranking - nome do invocador', value: 'lista com os elos do jogador' },
+                                    { name: '$set my main - seu nome de invocador', value: 'Ganhe um cargo especial com base no seu main' },
+                                )
+                                .setImage('https://i.imgur.com/kXUfcbD.png')
+                                .setTimestamp()
+                                .setFooter({ text: 'Fortis Fortuna Adiuvat', iconURL: 'https://i.imgur.com/zoGWQy3.jpeg' });
+
+                            
+                        interaction.reply({embeds: [embed]})
+            break
+        default:
+        break;
+    }
+    });
 
 
 
