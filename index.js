@@ -37,11 +37,12 @@ client.once('ready', async data => {
 
         
         if(message.content.includes('$summoner mastery')) {
-            const summonerName = message.content.split('-')[1].trim()
+            
            
     
             
            try {
+            const summonerName = message.content.split('-')[1].trim()
                 const summonerData =  await axios.get(encodeURI(`https://br1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${summonerName}`), {
                     headers: {'X-Riot-Token': `${process.env.RIOT_API_KEY}`}
                 })
@@ -111,11 +112,12 @@ client.once('ready', async data => {
         } 
 
         if(message.content.includes('$summoner ranking')) {
-            const summonerName = message.content.split('-')[1].trim()
+            
            
    
             
            try {
+            const summonerName = message.content.split('-')[1].trim()
                 const summonerData =  await axios.get(encodeURI(`https://br1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${summonerName}`), {
                     headers: {'X-Riot-Token': `${process.env.RIOT_API_KEY}`}
                 })
@@ -257,11 +259,12 @@ client.once('ready', async data => {
         
         if(message.content.includes('$set my main')){
 
-            const summonerName = message.content.split('-')[1].trim()
+            
 
 
 
             try {
+                const summonerName = message.content.split('-')[1].trim()
                 const summonerData =  await axios.get(encodeURI(`https://br1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${summonerName}`), {
                     headers: {'X-Riot-Token': `${process.env.RIOT_API_KEY}`}
                 })
@@ -340,11 +343,10 @@ client.once('ready', async data => {
 
         if(message.content.includes('$set my ranking')){
 
-            const summonerName = message.content.split('-')[1].trim()
-
 
 
             try {
+                const summonerName = message.content.split('-')[1].trim()
                 const summonerData =  await axios.get(encodeURI(`https://br1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${summonerName}`), {
                     headers: {'X-Riot-Token': `${process.env.RIOT_API_KEY}`}
                 })
@@ -480,7 +482,7 @@ client.once('ready', async data => {
                                     { name: '$set my main - seu nome de invocador', value: 'Ganhe um cargo especial com base no seu main' },
                                     { name: '$set my ranking - seu nome de invocador', value: 'Ganhe um cargo especial com base no seu ranking' }
                                 )
-                                .setImage('https://i.imgur.com/kXUfcbD.png')
+                                .setImage('https://i.imgur.com/nLKy3QN.png')
                                 .setTimestamp()
                                 .setFooter({ text: 'Fortis Fortuna Adiuvat', iconURL: 'https://i.imgur.com/zoGWQy3.jpeg' });
 
