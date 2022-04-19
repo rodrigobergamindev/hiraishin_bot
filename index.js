@@ -478,6 +478,7 @@ client.once('ready', async data => {
                                     { name: '$summoner mastery - nome do invocador', value: 'lista com os três campeões de maior maestria' },
                                     { name: '$summoner ranking - nome do invocador', value: 'lista com os elos do jogador' },
                                     { name: '$set my main - seu nome de invocador', value: 'Ganhe um cargo especial com base no seu main' },
+                                    { name: '$set my main - seu nome de invocador', value: 'Ganhe um cargo especial com base no seu ranking' }
                                 )
                                 .setImage('https://i.imgur.com/kXUfcbD.png')
                                 .setTimestamp()
