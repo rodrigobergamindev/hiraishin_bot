@@ -368,12 +368,9 @@ client.once('ready', async data => {
                         const roleAlreadyExist = message.member.roles.cache.find(role => role.name === `${soloQueue.tier} ${soloQueue.rank}`)
                         const createRole = roleAlreadyExist ? roleAlreadyExist : await message.guild.roles.create({
                          color: 'RANDOM',
-                         name: `${soloQueue.tier} ${soloQueue.rank}`,
-                         icon: {
-                             url: `https://raw.githubusercontent.com/InFinity54/LoL_DDragon/master/extras/tier/${soloQueue.tier.toLowerCase()}.png`
-                         }
+                         name: `${soloQueue.tier} ${soloQueue.rank}`
                      })
-
+                 
                      if(createRole){
 
                          const addUserToRole = await message.member.roles.add(createRole.id)
@@ -407,13 +404,11 @@ client.once('ready', async data => {
                      }
 
                     }else if(flexQueue){
+                        
                         const roleAlreadyExist = message.member.roles.cache.find(role => role.name === `${flexQueue.tier} ${flexQueue.rank}`)
                         const createRole = roleAlreadyExist ? roleAlreadyExist : await message.guild.roles.create({
                          color: 'RANDOM',
-                         name: `${flexQueue.tier} ${flexQueue.rank}`,
-                         icon: {
-                             url: `https://raw.githubusercontent.com/InFinity54/LoL_DDragon/master/extras/tier/${flexQueue.tier.toLowerCase()}.png`
-                         }
+                         name: `${flexQueue.tier} ${flexQueue.rank}`
                      })
 
                      if(createRole){
@@ -456,6 +451,7 @@ client.once('ready', async data => {
                 }
 
            } catch (error) {
+               console.log(error)
                message.channel.send({content: 'Não consegui localizar o invocador, por favor entre em contato a moderação'})
            }   
         }
