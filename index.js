@@ -17,8 +17,7 @@ client.once('ready', async data => {
     console.log('ready')
 
     const commands = [
-        new SlashCommandBuilder().setName('oraculo').setDescription('Obtenha uma lista com os meus comandos.'),
-        new SlashCommandBuilder().setName('ghostbuster').setDescription('Limpeza de membros fantasmas.'),
+        new SlashCommandBuilder().setName('oraculo').setDescription('Obtenha uma lista com os meus comandos.')
         ].map(command => command.toJSON());
     
     const rest = new REST({ version: '9' }).setToken(process.env.SECRET_TOKEN_DISCORD);
@@ -77,6 +76,63 @@ client.once('ready', async data => {
 
            
         
+        }
+
+        if(message.channel.name === 'ghostbuster'){
+            if(message.content === '$ghostbuster'){
+                const role = message.member.roles.cache.find(role => role.name === 'ghostbuster')
+
+            
+            if(role) {
+
+                try {
+                    await message.guild.members.cache.map(async member => {
+
+                        const isBot = member.user.bot
+                        if(isBot) return
+                        
+                        const message = await prisma.message.findUnique({
+                            where: {
+                                author: member.user.id
+                            }
+                        })
+    
+                        
+                        if(message) {
+                           
+                            const duration = new Date().getTime() - message.createdAt
+                            const time = 1000
+    
+                            if(duration > time){
+                                if(member.bannable){
+                                   await member.ban({
+                                        reason: 'Inatividade'
+                                    })
+
+                                }
+                            }
+                        } else if(!message){
+                            if(member.bannable){
+                                await member.ban({
+                                    reason: 'Inatividade'
+                                })
+                            }
+                            
+                            }
+                        
+                        
+                    
+                    })  
+                } catch (error) {
+                    console.log(error)
+                }
+                
+                
+            } else {
+                message.reply('Você não tem permissão para executar essa função')
+            }
+            
+            }
         }
     
         
@@ -543,69 +599,7 @@ client.once('ready', async data => {
                             
                         interaction.reply({embeds: [embed]})
             break;
-        case 'ghostbuster':
 
-            
-            const role = interaction.member.roles.cache.find(role => role.name === 'ghostbuster')
-
-            
-            if(role) {
-
-                try {
-                    await interaction.guild.members.cache.map(async member => {
-
-                        const isBot = member.user.bot
-                        if(isBot) return
-                        
-                        const message = await prisma.message.findUnique({
-                            where: {
-                                author: member.user.id
-                            }
-                        })
-    
-                        
-                        if(message) {
-                           
-                            const duration = new Date().getTime() - message.createdAt
-                            const time = 1000
-    
-                            if(duration > time){
-                                if(member.bannable){
-                                    const ban = await member.ban({
-                                        reason: 'Inatividade'
-                                    })
-
-                                    if(ban){
-                                        interaction.channel.send('Usuários fantasmas banidos')
-                                    }
-                                }
-                            }
-                        } else if(!message){
-                            if(member.bannable){
-                                const ban = await member.ban({
-                                    reason: 'Inatividade'
-                                })
-
-                                if(ban){
-                                    interaction.channel.send('Usuários fantasmas banidos')
-                                }
-                            }
-                            
-                            }
-                        
-                        
-                    
-                    })  
-                } catch (error) {
-                    console.log(error)
-                }
-                
-                
-            } else {
-                interaction.reply('Você não tem permissão para executar essa função')
-            }
-            
-            break;
         default:
         break;
     }
