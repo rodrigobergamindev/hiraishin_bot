@@ -19,7 +19,6 @@ client.once('ready', async data => {
     const commands = [
         new SlashCommandBuilder().setName('oraculo').setDescription('Obtenha uma lista com os meus comandos.'),
         new SlashCommandBuilder().setName('ghostbuster').setDescription('Limpeza de membros fantasmas.'),
-        new SlashCommandBuilder().setName('start-messages').setDescription('Inicia mensagens para todos os usuários.')
         ].map(command => command.toJSON());
     
     const rest = new REST({ version: '9' }).setToken(process.env.SECRET_TOKEN_DISCORD);
@@ -29,7 +28,25 @@ client.once('ready', async data => {
         .catch(console.error);
 
         
-       await client.guilds.cache.map(async (guild) => await guild.members.fetch().then().catch(console.error))
+       await client.guilds.cache.map(async (guild) => {
+           if(guild.id === '963135769394954270'){
+               await guild.members.fetch().then(data => data.map(async user => {
+                try {
+                    const isBot = user.user.bot
+                    if(!isBot){
+                        await prisma.message.create({
+                            data: {
+                                author: user.user.id,
+                                createdAt: new Date().getTime()
+                            }
+                        })
+                    }
+                } catch (error) {
+                    console.log(error)
+                }
+               })).catch(console.error);
+           }
+       })
     
 });
 
@@ -537,7 +554,7 @@ client.once('ready', async data => {
                 try {
                     await interaction.guild.members.cache.map(async member => {
 
-                        const isBot = member.roles.cache.find(role => role.name === 'BOTS')
+                        const isBot = member.user.bot
                         if(isBot) return
                         
                         const message = await prisma.message.findUnique({
@@ -554,21 +571,29 @@ client.once('ready', async data => {
     
                             if(duration > time){
                                 if(member.bannable){
-                                    await member.ban({
+                                    const ban = await member.ban({
                                         reason: 'Inatividade'
                                     })
+
+                                    if(ban){
+                                        interaction.channel.send('Usuários fantasmas banidos')
+                                    }
                                 }
                             }
                         } else if(!message){
                             if(member.bannable){
-                                await member.ban({
+                                const ban = await member.ban({
                                     reason: 'Inatividade'
                                 })
+
+                                if(ban){
+                                    interaction.channel.send('Usuários fantasmas banidos')
+                                }
                             }
                             
                             }
                         
-                        interaction.reply('Usuários fantasmas banidos')
+                        
                     
                     })  
                 } catch (error) {
@@ -580,28 +605,7 @@ client.once('ready', async data => {
                 interaction.reply('Você não tem permissão para executar essa função')
             }
             
-            break
-        case 'start-messages':
-
-           try {
-            await interaction.guild.members.cache.map(async member => {
-                const isBot = member.roles.cache.find(role => role.name === 'BOTS')
-                if(isBot) return
-                await prisma.message.create({
-                    data: {
-                        author: member.user.id,
-                        createdAt: new Date().getTime()
-                    }
-                })
-            })
-
-            interaction.reply('Iniciando o módulo de Ghost Buster')
-           } catch (error) {
-               console.log(error)
-           }
-
-            
-            
+            break;
         default:
         break;
     }
