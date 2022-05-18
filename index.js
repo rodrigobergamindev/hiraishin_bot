@@ -5,6 +5,10 @@ const { Client, Intents, MessageEmbed } = require('discord.js');
 const { Routes } = require('discord-api-types/v9');
 require('dotenv').config();
 
+const {PrismaClient} = require('@prisma/client')
+
+const prisma = new PrismaClient()
+
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_PRESENCES, Intents.FLAGS.GUILD_MEMBERS] });
 
@@ -14,6 +18,8 @@ client.once('ready', async data => {
 
     const commands = [
         new SlashCommandBuilder().setName('oraculo').setDescription('Obtenha uma lista com os meus comandos.'),
+        new SlashCommandBuilder().setName('ghostbuster').setDescription('Limpeza de membros fantasmas.'),
+        new SlashCommandBuilder().setName('start-messages').setDescription('Inicia mensagens para todos os usuários.')
         ].map(command => command.toJSON());
     
     const rest = new REST({ version: '9' }).setToken(process.env.SECRET_TOKEN_DISCORD);
@@ -21,11 +27,11 @@ client.once('ready', async data => {
     rest.put(Routes.applicationCommands(process.env.CLIENT_ID_DISCORD), { body: commands })
         .then(() => console.log('Successfully registered application commands.'))
         .catch(console.error);
-    
-        const Guilds = client.guilds.cache.map((guild) => guild);
-        await Guilds[0].members.fetch().then(console.log).catch(console.error);
-});
 
+        
+       await client.guilds.cache.map(async (guild) => await guild.members.fetch().then().catch(console.error))
+    
+});
 
 
      
@@ -33,16 +39,34 @@ client.once('ready', async data => {
  client.on("messageCreate", async (message) => {
      
         if(message.author.bot) return
+
+        if(message.channel.name === 'chat'){
+            
+            const messageDate = message.createdAt.getTime()
+            const authorMessage = message.member.user.id
+
+           await prisma.message.upsert({
+               where: {
+                   author: authorMessage
+               },
+               create: {
+                   author: authorMessage,
+                   createdAt: messageDate
+               },
+               update: {
+                   createdAt: messageDate
+               }
+           })
+
+           
+        
+        }
     
         
-        if(!(message.content.startsWith('$') 
-        || message.content.startsWith('y') || 
-        message.content.startsWith('n') || 
-        message.content.startsWith('confirm')) 
-        && message.channel.name === 'mudae'){
-
-            message.delete()
-         
+        if(message.channel.name === 'mudae'){
+            if(!(message.content.startsWith('$') || message.content.startsWith('y') || message.content.startsWith('n') || message.content.startsWith('confirm'))){
+                    message.delete()
+                }
         }
 
         
@@ -473,6 +497,7 @@ client.once('ready', async data => {
 
 
 
+
   client.on('interactionCreate', async interaction => {
 	if (!interaction.isCommand()) return;
  
@@ -500,12 +525,97 @@ client.once('ready', async data => {
 
                             
                         interaction.reply({embeds: [embed]})
+            break;
+        case 'ghostbuster':
+
+            
+            const role = interaction.member.roles.cache.find(role => role.name === 'ghostbuster')
+
+            
+            if(role) {
+
+                try {
+                    await interaction.guild.members.cache.map(async member => {
+
+                        const isBot = member.roles.cache.find(role => role.name === 'BOTS')
+                        if(isBot) return
+                        
+                        const message = await prisma.message.findUnique({
+                            where: {
+                                author: member.user.id
+                            }
+                        })
+    
+                        
+                        if(message) {
+                           
+                            const duration = new Date().getTime() - message.createdAt
+                            const time = 1000
+    
+                            if(duration > time){
+                                if(member.bannable){
+                                    await member.ban({
+                                        reason: 'Inatividade'
+                                    })
+                                }
+                            }
+                        } else if(!message){
+                            if(member.bannable){
+                                await member.ban({
+                                    reason: 'Inatividade'
+                                })
+                            }
+                            
+                            }
+                        
+                        interaction.reply('Usuários fantasmas banidos')
+                    
+                    })  
+                } catch (error) {
+                    console.log(error)
+                }
+                
+                
+            } else {
+                interaction.reply('Você não tem permissão para executar essa função')
+            }
+            
             break
+        case 'start-messages':
+
+           try {
+            await interaction.guild.members.cache.map(async member => {
+                const isBot = member.roles.cache.find(role => role.name === 'BOTS')
+                if(isBot) return
+                await prisma.message.create({
+                    data: {
+                        author: member.user.id,
+                        createdAt: new Date().getTime()
+                    }
+                })
+            })
+
+            interaction.reply('Iniciando o módulo de Ghost Buster')
+           } catch (error) {
+               console.log(error)
+           }
+
+            
+            
         default:
         break;
     }
     });
 
 
+client.on("guildMemberAdd", async newMember => {
+    
+    await prisma.message.create({
+        data: {
+            author: newMember.user.id,
+            createdAt: new Date().getTime()
+        }
+    })
+})
 
 client.login(process.env.SECRET_TOKEN_DISCORD);
