@@ -68,7 +68,7 @@ client.once('ready', async data => {
                    
                    
                     const time = 600000
-                    console.log(`${duration} - ${message.author
+                    console.log(`${duration} - ${message.nickname
                     }`)
                     if(duration > time){
                         
@@ -119,7 +119,8 @@ client.once('ready', async data => {
                    createdAt: messageDate,
                },
                update: {
-                   createdAt: messageDate
+                   createdAt: messageDate,
+                   nickname: message.member.user.username,
                }
            })
 
@@ -605,7 +606,8 @@ client.on("guildMemberAdd", async newMember => {
             author: newMember.user.id
         },
         update: {
-            createdAt: new Date().getTime()
+            createdAt: new Date().getTime(),
+            nickname: newMember.user.username
         },
         create: {
             author: newMember.user.id,
