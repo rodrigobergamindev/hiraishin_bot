@@ -27,7 +27,7 @@ client.once('ready', async data => {
         .catch(console.error);
 
         
-      let guild = await client.guilds.cache.get('963135769394954270')
+      let guild = await client.guilds.cache.get('964450751130767390')
       try {
 
         await guild.members.cache.map(async member => {
