@@ -26,7 +26,7 @@ client.once('ready', async data => {
         .then(() => console.log('Successfully registered application commands.'))
         .catch(console.error);
 
-        
+         
       
       try {
         let guild = await client.guilds.cache.get('964450751130767390')
