@@ -67,9 +67,8 @@ client.once('ready', async data => {
                     const duration = new Date().getTime() - message.createdAt
                    
                    
-                    const time = 600000
-                    console.log(`${duration} - ${message.nickname
-                    }`)
+                    const time = 604800000
+                    
                     if(duration > time){
                         
                         if(member.bannable){
@@ -87,7 +86,7 @@ client.once('ready', async data => {
                     }
                     }
             })
-        }, 600000)
+        }, 604800000)
         
 
           
