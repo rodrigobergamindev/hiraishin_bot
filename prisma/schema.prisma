@@ -11,5 +11,6 @@ datasource db {
 model Message {
   id       String    @id @default(auto()) @map("_id") @db.ObjectId
   author String @unique
+  nickname String
   createdAt Int
 }

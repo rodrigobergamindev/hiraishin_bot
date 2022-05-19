@@ -33,13 +33,14 @@ client.once('ready', async data => {
         await guild.members.cache.map(async member => {
             if(member.user.bot) return
             
-            const createInitialMessage = await prisma.message.upsert({
+            await prisma.message.upsert({
                 where: {
                     author: member.user.id
                 },
                 
                 create: {
                     author: member.user.id,
+                    nickname: member.user.username,
                     createdAt: new Date().getTime()
                 },
                 update: {}
@@ -64,26 +65,29 @@ client.once('ready', async data => {
                 if(message) {
                    
                     const duration = new Date().getTime() - message.createdAt
-                    const time = 1000
-
+                   
+                   
+                    const time = 100000
+                    console.log(`${duration} - ${message.author
+                    }`)
                     if(duration > time){
+                        
                         if(member.bannable){
-                           await member.ban({
+                           const ban = await member.ban({
                                 reason: 'Inatividade'
                             })
 
+                            if(ban) {
+                                const channel = await guild.channels.cache.find(channel => channel.name === 'anti-ghost')
+                                if(channel){
+                                    await channel.send(`Usuário ${message.nickname} banido por inatividade, última mensagem em ${new Date(message.createdAt).toLocaleString('pt-br')}`)
+                                }
+                            }
                         }
                     }
-                } else if(!message){
-                    if(member.bannable){
-                        await member.ban({
-                            reason: 'Inatividade'
-                        })
-                    }
-                    
                     }
             })
-        }, 4000)
+        }, 10000)
         
 
           
@@ -100,7 +104,7 @@ client.once('ready', async data => {
      
         if(message.author.bot) return
 
-        if(message.channel.name === 'chat'){
+        if(message.channel.name.includes('chat')){
             
             const messageDate = message.createdAt.getTime()
             const authorMessage = message.member.user.id
@@ -111,7 +115,8 @@ client.once('ready', async data => {
                },
                create: {
                    author: authorMessage,
-                   createdAt: messageDate
+                   nickname: message.member.user.username,
+                   createdAt: messageDate,
                },
                update: {
                    createdAt: messageDate
@@ -120,64 +125,6 @@ client.once('ready', async data => {
 
            
         
-        }
-
-        if(message.channel.name === 'ghostbuster'){
-            message.channel.time
-            if(message.content === '$ghostbuster'){
-                const role = message.member.roles.cache.find(role => role.name === 'ghostbuster')
-
-            
-            if(role) {
-                
-                try {
-                    await message.guild.members.cache.map(async member => {
-
-                        const isBot = member.user.bot
-                        if(isBot) return
-                        
-                        const message = await prisma.message.findUnique({
-                            where: {
-                                author: member.user.id
-                            }
-                        })
-    
-                        
-                        if(message) {
-                           
-                            const duration = new Date().getTime() - message.createdAt
-                            const time = 1000
-    
-                            if(duration > time){
-                                if(member.bannable){
-                                   await member.ban({
-                                        reason: 'Inatividade'
-                                    })
-
-                                }
-                            }
-                        } else if(!message){
-                            if(member.bannable){
-                                await member.ban({
-                                    reason: 'Inatividade'
-                                })
-                            }
-                            
-                            }
-                        
-                        
-                    
-                    })  
-                } catch (error) {
-                    console.log(error)
-                }
-                
-                
-            } else {
-                message.reply('Você não tem permissão para executar essa função')
-            }
-            
-            }
         }
     
         
@@ -188,7 +135,7 @@ client.once('ready', async data => {
         }
 
         
-       if(message.channel.name === 'oraculo') {
+       if(message.channel.name.includes('oraculo')) {
         if(message.content.includes('$summoner mastery')) {
             
            
@@ -662,6 +609,7 @@ client.on("guildMemberAdd", async newMember => {
         },
         create: {
             author: newMember.user.id,
+            nickname: newMember.user.username,
             createdAt: new Date().getTime()
         }
     })
