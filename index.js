@@ -27,25 +27,22 @@ client.once('ready', async data => {
         .catch(console.error);
 
         
-       await client.guilds.cache.map(async (guild) => {
-           if(guild.id === '963135769394954270'){
-               await guild.members.fetch().then(data => data.map(async user => {
-                try {
-                    const isBot = user.user.bot
-                    if(!isBot){
-                        await prisma.message.create({
-                            data: {
-                                author: user.user.id,
-                                createdAt: new Date().getTime()
-                            }
-                        })
-                    }
-                } catch (error) {
-                    console.log(error)
-                }
-               })).catch(console.error);
-           }
-       })
+      let guild = await client.guilds.cache.get('963135769394954270')
+      try {
+          await guild.members.cache.map(async member => {
+              if(member.user.bot) return
+              
+              await prisma.message.create({
+                  data: {
+                      author: member.user.id,
+                      createdAt: new Date().getTime()
+                  }
+              })
+              
+          })
+      } catch (error) {
+          console.log(error)
+      }
     
 });
 
@@ -79,12 +76,13 @@ client.once('ready', async data => {
         }
 
         if(message.channel.name === 'ghostbuster'){
+            message.channel.time
             if(message.content === '$ghostbuster'){
                 const role = message.member.roles.cache.find(role => role.name === 'ghostbuster')
 
             
             if(role) {
-
+                
                 try {
                     await message.guild.members.cache.map(async member => {
 
