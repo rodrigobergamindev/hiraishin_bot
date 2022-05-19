@@ -29,17 +29,64 @@ client.once('ready', async data => {
         
       let guild = await client.guilds.cache.get('963135769394954270')
       try {
-          await guild.members.cache.map(async member => {
-              if(member.user.bot) return
-              
-              await prisma.message.create({
-                  data: {
-                      author: member.user.id,
-                      createdAt: new Date().getTime()
-                  }
-              })
-              
-          })
+
+        await guild.members.cache.map(async member => {
+            if(member.user.bot) return
+            
+            const createInitialMessage = await prisma.message.upsert({
+                where: {
+                    author: member.user.id
+                },
+                
+                create: {
+                    author: member.user.id,
+                    createdAt: new Date().getTime()
+                },
+                update: {}
+            })
+            
+            
+            
+        })
+
+
+        setInterval(async () => {
+            await guild.members.cache.map(async member => {
+                if(member.user.bot) return
+                
+                const message = await prisma.message.findUnique({
+                    where: {
+                        author: member.user.id
+                    }
+                })
+
+                
+                if(message) {
+                   
+                    const duration = new Date().getTime() - message.createdAt
+                    const time = 1000
+
+                    if(duration > time){
+                        if(member.bannable){
+                           await member.ban({
+                                reason: 'Inatividade'
+                            })
+
+                        }
+                    }
+                } else if(!message){
+                    if(member.bannable){
+                        await member.ban({
+                            reason: 'Inatividade'
+                        })
+                    }
+                    
+                    }
+            })
+        }, 4000)
+        
+
+          
       } catch (error) {
           console.log(error)
       }
@@ -606,8 +653,14 @@ client.once('ready', async data => {
 
 client.on("guildMemberAdd", async newMember => {
     
-    await prisma.message.create({
-        data: {
+    await prisma.message.upsert({
+        where: {
+            author: newMember.user.id
+        },
+        update: {
+            createdAt: new Date().getTime()
+        },
+        create: {
             author: newMember.user.id,
             createdAt: new Date().getTime()
         }
