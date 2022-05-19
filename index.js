@@ -67,7 +67,7 @@ client.once('ready', async data => {
                     const duration = new Date().getTime() - message.createdAt
                    
                    
-                    const time = 100000
+                    const time = 600000
                     console.log(`${duration} - ${message.author
                     }`)
                     if(duration > time){
@@ -87,7 +87,7 @@ client.once('ready', async data => {
                     }
                     }
             })
-        }, 10000)
+        }, 600000)
         
 
           
