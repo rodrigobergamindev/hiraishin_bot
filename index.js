@@ -3,21 +3,30 @@ const { REST } = require('@discordjs/rest');
 const { default: axios } = require('axios');
 const { Client, Intents, MessageEmbed } = require('discord.js');
 const { Routes } = require('discord-api-types/v9');
+
+
+
 require('dotenv').config();
 
-const {PrismaClient} = require('@prisma/client')
+//const {PrismaClient} = require('@prisma/client')
 
-const prisma = new PrismaClient()
+//const prisma = new PrismaClient()
 
 
-const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_PRESENCES, Intents.FLAGS.GUILD_MEMBERS] });
+const client = new Client({ intents: [Intents.FLAGS.GUILDS, 
+    Intents.FLAGS.GUILD_MESSAGES, 
+    Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_PRESENCES, 
+    Intents.FLAGS.GUILD_MEMBERS,
+    Intents.FLAGS.GUILD_VOICE_STATES,
+] });
 
 
 client.once('ready', async data => {
     console.log('ready')
 
     const commands = [
-        new SlashCommandBuilder().setName('oraculo').setDescription('Obtenha uma lista com os meus comandos.')
+        new SlashCommandBuilder().setName('hiraishin').setDescription('Obtenha uma lista com os meus comandos.'),
+        new SlashCommandBuilder().setName('play').setDescription('Plays a song')
         ].map(command => command.toJSON());
     
     const rest = new REST({ version: '9' }).setToken(process.env.SECRET_TOKEN_DISCORD);
@@ -29,67 +38,9 @@ client.once('ready', async data => {
          
       
       try {
-        let guild = await client.guilds.cache.get('964450751130767390')
-        await guild.members.cache.map(async member => {
-            if(member.user.bot) return
-            
-            await prisma.message.upsert({
-                where: {
-                    author: member.user.id
-                },
-                
-                create: {
-                    author: member.user.id,
-                    nickname: member.user.username,
-                    createdAt: new Date().getTime()
-                },
-                update: {}
-            })
-            
-            
-            
-        })
+        const guilds = await client.guilds.cache.map((guild) => guild);
+        await guilds.map(guild => guild.members.fetch().then().catch(console.error))
 
-
-        setInterval(async () => {
-            await guild.members.cache.map(async member => {
-                if(member.user.bot) return
-                
-                const message = await prisma.message.findUnique({
-                    where: {
-                        author: member.user.id
-                    }
-                })
-
-                
-                if(message) {
-                   
-                    const duration = new Date().getTime() - message.createdAt
-                   
-                   
-                    const time = 604800000
-                    
-                    if(duration > time){
-                        
-                        if(member.bannable){
-                           const ban = await member.ban({
-                                reason: 'Inatividade'
-                            })
-
-                            if(ban) {
-                                const channel = await guild.channels.cache.find(channel => channel.name === 'anti-ghost')
-                                if(channel){
-                                    await channel.send(`Usuário ${message.nickname} banido por inatividade, última mensagem em ${new Date(message.createdAt).toLocaleString('pt-br')}`)
-                                }
-                            }
-                        }
-                    }
-                    }
-            })
-        }, 604800000)
-        
-
-          
       } catch (error) {
           console.log(error)
       }
@@ -97,13 +48,22 @@ client.once('ready', async data => {
 });
 
 
-     
+   
 
- client.on("messageCreate", async (message) => {
+client.on("messageCreate", async (message) => {
      
         if(message.author.bot) return
 
-        if(message.channel.name.includes('chat')){
+        if(message.content.startsWith('$y!play')){
+       
+            const result = await player.search('eww', {
+                requestedBy: message.author,
+                searchEngine: QueryType.YOUTUBE_PLAYLIST
+            })
+        }
+
+        /**
+         if(message.channel.name.includes('chat')){
             
             const messageDate = message.createdAt.getTime()
             const authorMessage = message.member.user.id
@@ -558,6 +518,7 @@ client.once('ready', async data => {
             }   
          }
        }
+         */
   });
 
 
@@ -569,51 +530,33 @@ client.once('ready', async data => {
 	const { commandName } = interaction;
 
     switch (commandName) {
-        case 'oraculo':
+        case 'hiraishin':
             const embed = new MessageEmbed()
                                 .setColor('#ff3838')
-                                .setTitle('Bem-vindo ao Oráculo!')
-                                .setAuthor({name: `Oráculo`})
-                                .setDescription(`Informações sobre invocadores, campeões, glossário e mais. Busque informações sobre as suas filas ranqueadas e maestria e ganhe um cargo especial com base no seu main e pontuação de maestria.`)
-                                .setThumbnail('https://img.icons8.com/color/48/000000/league-of-legends.png')
+                                .setTitle('Hi, im Hiraishin, lets play the music.')
+                                .setAuthor({name: `Hiraishin`})
+                                .setDescription(`The perfect music bot! Feature rich with high quality music!`)
+                                .setThumbnail('https://img.icons8.com/external-justicon-flat-justicon/64/000000/external-headphone-rock-and-roll-justicon-flat-justicon.png')
                                 .addFields(
                                     { name: '\u200b', value: '\u200b', inline: false, },
-                                    { name: '/oraculo', value: 'lista com todos os comandos' },
-                                    { name: '$summoner mastery - nome do invocador', value: 'retorna o campeão de maior maestria do jogador' },
-                                    { name: '$summoner ranking - nome do invocador', value: 'lista com os elos do jogador' },
-                                    { name: '$set my main - seu nome de invocador', value: 'Ganhe um cargo especial com base no seu main' },
-                                    { name: '$set my ranking - seu nome de invocador', value: 'Ganhe um cargo especial com base no seu ranking' }
+                                    { name: '/hiraishin', value: 'lista com todos os comandos' },
                                 )
-                                .setImage('https://i.imgur.com/FzFrWLJ.png')
+                                .setImage('https://cdnb.artstation.com/p/assets/images/images/009/089/349/4k/alexander-dudar-city-view.jpg?1517073959')
                                 .setTimestamp()
-                                .setFooter({ text: 'A sorte favorece os corajosos', iconURL: 'https://cdn.discordapp.com/attachments/963135769394954273/963288526303162388/unknown.png' });
+                                .setFooter({ text: 'Art must exist beyond comprehension', iconURL: 'https://i.imgur.com/7Mp1lV5.png' });
 
                             
                         interaction.reply({embeds: [embed]})
             break;
-
+        
+        case 'play':
+           
         default:
         break;
     }
     });
 
 
-client.on("guildMemberAdd", async newMember => {
-    
-    await prisma.message.upsert({
-        where: {
-            author: newMember.user.id
-        },
-        update: {
-            createdAt: new Date().getTime(),
-            nickname: newMember.user.username
-        },
-        create: {
-            author: newMember.user.id,
-            nickname: newMember.user.username,
-            createdAt: new Date().getTime()
-        }
-    })
-})
+
 
 client.login(process.env.SECRET_TOKEN_DISCORD);
