@@ -3,7 +3,8 @@ const { REST } = require('@discordjs/rest');
 const { default: axios } = require('axios');
 const { Client, Intents, MessageEmbed } = require('discord.js');
 const { Routes } = require('discord-api-types/v9');
-
+const ytdl = require('ytdl-core');
+const {AudioPlayer} = require('@discordjs/voice')
 
 
 require('dotenv').config();
@@ -54,12 +55,10 @@ client.on("messageCreate", async (message) => {
      
         if(message.author.bot) return
 
-        if(message.content.startsWith('$y!play')){
+        if(message.content.startsWith('!play')){
        
-            const result = await player.search('eww', {
-                requestedBy: message.author,
-                searchEngine: QueryType.YOUTUBE_PLAYLIST
-            })
+            
+            
         }
 
         /**
@@ -549,8 +548,6 @@ client.on("messageCreate", async (message) => {
                         interaction.reply({embeds: [embed]})
             break;
         
-        case 'play':
-           
         default:
         break;
     }
