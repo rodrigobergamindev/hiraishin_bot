@@ -49,7 +49,11 @@ client.once('ready', async data => {
 });
 
 
-   
+const execute = (message, serverQueue) => {
+
+}
+
+
 
 client.on("messageCreate", async (message) => {
      
@@ -57,8 +61,9 @@ client.on("messageCreate", async (message) => {
 
         if(message.content.startsWith('!play')){
        
-            
-            
+            const voiceChannel = message.member.voice.channel;
+            console.log(voiceChannel)
+            return
         }
 
         /**
