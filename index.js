@@ -62,8 +62,30 @@ client.on("messageCreate", async (message) => {
         if(message.content.startsWith('!play')){
        
             const voiceChannel = message.member.voice.channel;
-            console.log(voiceChannel)
-            return
+            if (!voiceChannel)
+                return message.channel.send(
+                "You need to be in a voice channel to play music!"
+                );
+            
+                const permissions = voiceChannel.permissionsFor(message.client.user);
+                if (!permissions.has("CONNECT") || !permissions.has("SPEAK")) {
+                  return message.channel.send(
+                    "I need the permissions to join and speak in your voice channel!"
+                  );
+                }  
+
+                const url = await message.content.split(" ")
+                const songInfo = await ytdl.getInfo(url[1]);
+                const song = {
+                    title: songInfo.videoDetails.title,
+                    url: songInfo.videoDetails.video_url,
+                };
+
+
+                const guild = message.guild.id
+                
+
+                console.log(song)
         }
 
         /**
