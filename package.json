@@ -25,7 +25,7 @@
     "ffmpeg": "^0.0.4",
     "op.gg-api": "^2.0.5-alpha",
     "prisma": "^3.14.0",
-    "ytdl-core": "4.8.3"
+    "ytdl-core": "^4.11.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.15"
