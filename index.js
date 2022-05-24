@@ -6,8 +6,7 @@ const { Routes } = require('discord-api-types/v9');
 const ytdl = require('ytdl-core');
 const {AudioPlayer, NoSubscriberBehavior, createAudioResource, AudioPlayerStatus, joinVoiceChannel, getVoiceConnection} = require('@discordjs/voice')
 const { createAudioPlayer } = require('@discordjs/voice');
-const { createWriteStream, createReadStream } = require('node:fs');
-
+const { video_basic_info, stream } = require('play-dl');
 
 const player = createAudioPlayer({
 	behaviors: {
@@ -77,31 +76,32 @@ client.on("messageCreate", async (message) => {
                   );
                 }  
 
-                const url = await message.content.split(" ")
-                const songInfo = await ytdl.getInfo(url[1]);
+                const url = await message.content.split(" ")[1]
+                const songInfo = await video_basic_info(url)
+                
                 const song = {
-                    title: songInfo.videoDetails.title,
-                    url: songInfo.videoDetails.video_url,
+                    title: songInfo.video_details.title,
+                    url: songInfo.video_details.url
                 };
 
+              
 
   
                 
                try {
-                const stream = await ytdl(song.url, {
-                    filter: 'audioonly',
-                    quality: 'highest'
-                })
-
-                const resource = await createAudioResource(stream, {
+                const music = await stream(song.url)
+                
+                const resource = await createAudioResource(music.stream, {
                     metadata: {
                         title: `${song.title}`
-                    }
+                    },
+                    inputType: music.type
                 });
-
+                
                 if(resource){
+                   
                     await player.play(resource)
-
+                    
                     const connection = await joinVoiceChannel({
                         channelId: voiceChannel.id,
                         guildId: message.guild.id,
