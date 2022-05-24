@@ -3,14 +3,13 @@ const { REST } = require('@discordjs/rest');
 const { default: axios } = require('axios');
 const { Client, Intents, MessageEmbed } = require('discord.js');
 const { Routes } = require('discord-api-types/v9');
-const ytdl = require('ytdl-core');
 const {AudioPlayer, NoSubscriberBehavior, createAudioResource, AudioPlayerStatus, joinVoiceChannel, getVoiceConnection} = require('@discordjs/voice')
 const { createAudioPlayer } = require('@discordjs/voice');
-const { video_basic_info, stream } = require('play-dl');
+const { video_basic_info, stream, spotify, search, setToken } = require('play-dl');
 
 const player = createAudioPlayer({
 	behaviors: {
-		noSubscriber: NoSubscriberBehavior.Pause,
+		noSubscriber: NoSubscriberBehavior.Play,
 	},
 });
 
@@ -45,6 +44,12 @@ client.once('ready', async data => {
          
       
       try {
+        await setToken({
+            spotify: {
+                client_id: '453811a2f01a43fbb39b1a38b7d3d273',
+                client_secret
+            }
+        })
         const guilds = await client.guilds.cache.map((guild) => guild);
         await guilds.map(guild => guild.members.fetch().then().catch(console.error))
 
@@ -62,8 +67,9 @@ client.on("messageCreate", async (message) => {
         if(message.author.bot) return
         if(!message.guild) return
 
-        if(message.content.startsWith('!play')){
-       
+        
+        if(message.channel.name === '🎧┊hiraishin'){
+
             const voiceChannel = message.member.voice.channel
             if (!voiceChannel)
                 return message.channel.send(
@@ -77,43 +83,58 @@ client.on("messageCreate", async (message) => {
                   );
                 }  
                 
-               try {
-                const url = await message.content.split(" ")[1]
-                const songInfo = await video_basic_info(url)
-                
-                const song = {
-                    title: songInfo.video_details.title,
-                    url: songInfo.video_details.url
-                };
+              const url = message.content
 
-                const music = await stream(song.url)
-                
-                const resource = await createAudioResource(music.stream, {
-                    metadata: {
-                        title: `${song.title}`
-                    },
-                    inputType: music.type
-                });
-                
-                if(resource){
-                   
-                    await player.play(resource)
+
+              if(url.includes('youtube')){
+                try {
                     
-                    const connection = await joinVoiceChannel({
-                        channelId: voiceChannel.id,
-                        guildId: message.guild.id,
-                        adapterCreator: message.guild.voiceAdapterCreator
-                    })
+                    const songInfo = await video_basic_info(url)
+                    
+                    const song = {
+                        title: songInfo.video_details.title,
+                        url: songInfo.video_details.url
+                    };
     
-                    if(connection){
-                        await connection.subscribe(player)
+                    const music = await stream(song.url)
+                    
+                    const resource = await createAudioResource(music.stream, {
+                        metadata: {
+                            title: `${song.title}`
+                        },
+                        inputType: music.type
+                    });
+                    
+                    if(resource){
+                       
+                        await player.play(resource)
+                        
+                        const connection = await joinVoiceChannel({
+                            channelId: voiceChannel.id,
+                            guildId: message.guild.id,
+                            adapterCreator: message.guild.voiceAdapterCreator
+                        })
+        
+                        if(connection){
+                            await connection.subscribe(player)
+                        }
                     }
-                }
+    
+                    
+                   } catch (error) {
+                       console.log(error)
+                   }
+              }
 
-                
-               } catch (error) {
-                   console.log(error)
-               }
+              if(url.includes('spotify')){
+
+                let sp_data = await spotify(url)
+                let searched = await search(`${sp_data.name}`, {
+                    limit: 1
+                }) 
+
+                console.log(searched)
+              }
         }
 
         
@@ -132,6 +153,24 @@ client.on("messageCreate", async (message) => {
 
     switch (commandName) {
         case 'hiraishin':
+
+            const channel = await interaction.guild.channels.cache.find(channel => channel.name === '🎧┊hiraishin')
+
+            if(!channel){
+                const setupChannel = await interaction.guild.channels.create('🎧┊hiraishin', {
+                    type: "text",
+                    permissionOverwrites: [
+                        {
+                          id: interaction.guild.roles.everyone, 
+                          allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY'],
+                          deny: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY'] 
+                        }
+                     ],
+                })
+    
+                console.log(setupChannel)
+            }
+
             const embed = new MessageEmbed()
                                 .setColor('#ff3838')
                                 .setTitle('Hi, im Hiraishin, lets play the music.')
