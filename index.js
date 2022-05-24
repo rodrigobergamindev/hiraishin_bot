@@ -60,6 +60,7 @@ client.once('ready', async data => {
 client.on("messageCreate", async (message) => {
      
         if(message.author.bot) return
+        if(!message.guild) return
 
         if(message.content.startsWith('!play')){
        
@@ -75,7 +76,8 @@ client.on("messageCreate", async (message) => {
                     "I need the permissions to join and speak in your voice channel!"
                   );
                 }  
-
+                
+               try {
                 const url = await message.content.split(" ")[1]
                 const songInfo = await video_basic_info(url)
                 
@@ -84,11 +86,6 @@ client.on("messageCreate", async (message) => {
                     url: songInfo.video_details.url
                 };
 
-              
-
-  
-                
-               try {
                 const music = await stream(song.url)
                 
                 const resource = await createAudioResource(music.stream, {
