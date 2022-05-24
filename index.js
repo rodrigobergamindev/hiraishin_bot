@@ -6,7 +6,8 @@ const { Routes } = require('discord-api-types/v9');
 const ytdl = require('ytdl-core');
 const {AudioPlayer, NoSubscriberBehavior, createAudioResource, AudioPlayerStatus, joinVoiceChannel, getVoiceConnection} = require('@discordjs/voice')
 const { createAudioPlayer } = require('@discordjs/voice');
-const { createWriteStream } = require('node:fs');
+const { createWriteStream, createReadStream } = require('node:fs');
+
 
 const player = createAudioPlayer({
 	behaviors: {
@@ -33,8 +34,7 @@ client.once('ready', async data => {
     console.log('ready')
 
     const commands = [
-        new SlashCommandBuilder().setName('hiraishin').setDescription('Obtenha uma lista com os meus comandos.'),
-        new SlashCommandBuilder().setName('play').setDescription('Plays a song')
+        new SlashCommandBuilder().setName('hiraishin').setDescription('Obtenha uma lista com os meus comandos.')
         ].map(command => command.toJSON());
     
     const rest = new REST({ version: '9' }).setToken(process.env.SECRET_TOKEN_DISCORD);
@@ -85,39 +85,47 @@ client.on("messageCreate", async (message) => {
                 };
 
 
-                const guild = message.guild.id
+  
                 
-                const stream = ytdl(song.url, {
-                    filter: 'audioonly'
+               try {
+                const stream = await ytdl(song.url, {
+                    filter: 'audioonly',
+                    quality: 'highest'
                 })
 
-                const connection = await joinVoiceChannel({
-                    channelId: voiceChannel.id,
-                    guildId: message.guild.id,
-                    adapterCreator: message.guild.voiceAdapterCreator
-                })
-
-            
                 const resource = await createAudioResource(stream, {
                     metadata: {
-                        title: 'A good song!',
-                    },
+                        title: `${song.title}`
+                    }
                 });
 
-                await new Promise((resolve) => { // wait
-                    ytdl(song.url)
-                    .pipe(createWriteStream('song.mp3'))
-                    .on('close', () => {
-                        console.log('veio aqui')
-                      resolve(); // finish
+                if(resource){
+                    await player.play(resource)
+
+                    const connection = await joinVoiceChannel({
+                        channelId: voiceChannel.id,
+                        guildId: message.guild.id,
+                        adapterCreator: message.guild.voiceAdapterCreator
                     })
-                  })
+    
+                    if(connection){
+                        await connection.subscribe(player)
+                    }
+                }
+
+                
+               } catch (error) {
+                   console.log(error)
+               }
         }
 
         
   });
 
 
+  player.on("error", async error => {
+      console.log(error)
+  });
 
 
   client.on('interactionCreate', async interaction => {
