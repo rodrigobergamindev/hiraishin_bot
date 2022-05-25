@@ -5,7 +5,7 @@ const { Client, Intents, MessageEmbed } = require('discord.js');
 const { Routes } = require('discord-api-types/v9');
 const {AudioPlayer, NoSubscriberBehavior, createAudioResource, AudioPlayerStatus, joinVoiceChannel, getVoiceConnection} = require('@discordjs/voice')
 const { createAudioPlayer } = require('@discordjs/voice');
-const { video_basic_info, stream, spotify, search, setToken } = require('play-dl');
+const { video_basic_info, stream, spotify, search, setToken, is_expired, refreshToken } = require('play-dl');
 
 const player = createAudioPlayer({
 	behaviors: {
@@ -44,14 +44,11 @@ client.once('ready', async data => {
          
       
       try {
-        await setToken({
-            spotify: {
-                client_id: '453811a2f01a43fbb39b1a38b7d3d273',
-                client_secret
-            }
-        })
+      
         const guilds = await client.guilds.cache.map((guild) => guild);
         await guilds.map(guild => guild.members.fetch().then().catch(console.error))
+
+       
 
       } catch (error) {
           console.log(error)
@@ -128,12 +125,21 @@ client.on("messageCreate", async (message) => {
 
               if(url.includes('spotify')){
 
-                let sp_data = await spotify(url)
-                let searched = await search(`${sp_data.name}`, {
-                    limit: 1
-                }) 
-
-                console.log(searched)
+                try {
+                    console.log(url)
+                    let sp_data = await spotify(url)
+                            let searched = await search(`${sp_data.name}`, {
+                        limit: 1
+                    }) 
+                    console.log(searched)
+                    
+                    
+                    
+                    
+                } catch (error) {
+                    console.log(error)
+                }
+                
               }
         }
 
@@ -168,7 +174,7 @@ client.on("messageCreate", async (message) => {
                      ],
                 })
     
-                console.log(setupChannel)
+                
             }
 
             const embed = new MessageEmbed()
