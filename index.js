@@ -5,8 +5,8 @@ const { Client, Intents, MessageEmbed } = require('discord.js');
 const { Routes } = require('discord-api-types/v9');
 const {AudioPlayer, NoSubscriberBehavior, createAudioResource, AudioPlayerStatus, joinVoiceChannel, getVoiceConnection} = require('@discordjs/voice')
 const { createAudioPlayer } = require('@discordjs/voice');
-const { video_basic_info, stream, search } = require('play-dl');
-const music = require('@koenie06/discord.js-music');
+const { video_basic_info, stream, search, playlist_info } = require('play-dl');
+
 
 const player = createAudioPlayer({
 	behaviors: {
@@ -85,6 +85,56 @@ client.on("messageCreate", async (message) => {
 
 
               if(url.includes('youtube')){
+               if(url.includes('list')){
+                    
+                
+                        try {
+                        const playlist = await playlist_info(url)
+                    
+                        const videos = await (await playlist.all_videos()).map(video => video)
+                    
+                        await videos.map(async video => {
+                            
+                            const song = {
+                                title: video.title,
+                                url: video.url
+                            };
+
+                            const music = await stream(song.url)
+
+                            const resource = await createAudioResource(music.stream, {
+                                metadata: {
+                                    title: `${music.title}`
+                                },
+                                inputType: music.type
+                            });
+                            
+                            if(resource){
+                               
+                                await player.play(resource)
+                                
+                                const connection = await joinVoiceChannel({
+                                    channelId: voiceChannel.id,
+                                    guildId: message.guild.id,
+                                    adapterCreator: message.guild.voiceAdapterCreator
+                                })
+                
+                                if(connection){
+                                    await connection.subscribe(player)
+                                }
+                            }
+                        })
+                        
+                       
+                    
+                        } catch (error) {
+                            console.log(error)
+                        }
+
+
+
+
+               }else{
                 try {
                     
                     const songInfo = await video_basic_info(url)
@@ -122,29 +172,16 @@ client.on("messageCreate", async (message) => {
                    } catch (error) {
                        console.log(error)
                    }
+               }
+
+               
               }
 
               if(url.includes('spotify')){
 
                 try {
 
-                   const stream = await music.play({
-                        channel: voiceChannel,
-                        interaction: message,
-                        song: url
-                    })
-                    
-        
-
-                    const connection = await joinVoiceChannel({
-                        channelId: voiceChannel.id,
-                        guildId: message.guild.id,
-                        adapterCreator: message.guild.voiceAdapterCreator
-                    })
-    
-                    if(connection){
-                        await connection.subscribe(stream)
-                    }
+               
                     
                     
                 } catch (error) {
