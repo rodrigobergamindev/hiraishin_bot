@@ -5,7 +5,8 @@ const { Client, Intents, MessageEmbed } = require('discord.js');
 const { Routes } = require('discord-api-types/v9');
 const {AudioPlayer, NoSubscriberBehavior, createAudioResource, AudioPlayerStatus, joinVoiceChannel, getVoiceConnection} = require('@discordjs/voice')
 const { createAudioPlayer } = require('@discordjs/voice');
-const { video_basic_info, stream, spotify, search, setToken, is_expired, refreshToken } = require('play-dl');
+const { video_basic_info, stream, search } = require('play-dl');
+const music = require('@koenie06/discord.js-music');
 
 const player = createAudioPlayer({
 	behaviors: {
@@ -47,8 +48,8 @@ client.once('ready', async data => {
       
         const guilds = await client.guilds.cache.map((guild) => guild);
         await guilds.map(guild => guild.members.fetch().then().catch(console.error))
-
-       
+        
+        
 
       } catch (error) {
           console.log(error)
@@ -126,14 +127,24 @@ client.on("messageCreate", async (message) => {
               if(url.includes('spotify')){
 
                 try {
-                    console.log(url)
-                    let sp_data = await spotify(url)
-                            let searched = await search(`${sp_data.name}`, {
-                        limit: 1
-                    }) 
-                    console.log(searched)
+
+                   const stream = await music.play({
+                        channel: voiceChannel,
+                        interaction: message,
+                        song: url
+                    })
                     
-                    
+        
+
+                    const connection = await joinVoiceChannel({
+                        channelId: voiceChannel.id,
+                        guildId: message.guild.id,
+                        adapterCreator: message.guild.voiceAdapterCreator
+                    })
+    
+                    if(connection){
+                        await connection.subscribe(stream)
+                    }
                     
                     
                 } catch (error) {
@@ -163,7 +174,7 @@ client.on("messageCreate", async (message) => {
             const channel = await interaction.guild.channels.cache.find(channel => channel.name === '🎧┊hiraishin')
 
             if(!channel){
-                const setupChannel = await interaction.guild.channels.create('🎧┊hiraishin', {
+                await interaction.guild.channels.create('🎧┊hiraishin', {
                     type: "text",
                     permissionOverwrites: [
                         {
