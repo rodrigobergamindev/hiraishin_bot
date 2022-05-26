@@ -6,6 +6,16 @@ const { Routes } = require('discord-api-types/v9');
 const {AudioPlayer, NoSubscriberBehavior, createAudioResource, AudioPlayerStatus, joinVoiceChannel, getVoiceConnection} = require('@discordjs/voice')
 const { createAudioPlayer } = require('@discordjs/voice');
 const { video_basic_info, stream, search, playlist_info } = require('play-dl');
+const {Spotify} = require('spotifydl-core')
+
+const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
+const ffmpeg = require('fluent-ffmpeg');
+ffmpeg.setFfmpegPath(ffmpegPath);
+
+const spotify = new Spotify({
+    clientId: '453811a2f01a43fbb39b1a38b7d3d273',
+    clientSecret: 'a863a5be635e4c8b9a01ff472c2c8c31'
+})
 
 
 const player = createAudioPlayer({
@@ -233,9 +243,25 @@ client.on("messageCreate", async (message) => {
                        if(url.includes('spotify')){
          
                          try {
+
+                           
+                            const name = new Date().getTime()
+                           
+                            const track = await spotify.downloadTrack(url, `${name}.mp3`)
          
-                        
-                             
+                           if(track){
+                            const resource = await createAudioResource(`${name}.mp3`);
+
+                            if(resource){
+                                await player.play(resource)
+                                
+                                player.on(AudioPlayerStatus.Idle, () => {
+                                   connection.disconnect()
+                               });
+                            }
+                           }
+            
+
                              
                          } catch (error) {
                              console.log(error)
