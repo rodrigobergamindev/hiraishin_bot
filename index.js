@@ -29,6 +29,7 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS,
 ] });
 
 
+
 client.once('ready', async data => {
     console.log('ready')
 
@@ -57,7 +58,32 @@ client.once('ready', async data => {
     
 });
 
+let queue = []
 
+const keepPlaying = async () => {
+         
+   
+        if(queue.length > 0){
+            const song = queue.shift()
+            console.log(song)
+            const music = await stream(song.url)
+
+            const resource = await createAudioResource(music.stream, {
+                    metadata: {
+                    title: `${song.title}`
+                },
+                inputType: music.type
+           });
+
+            await player.play(resource)
+            return true
+        }else {
+            return false
+        }
+
+    
+    
+}
 
 
 client.on("messageCreate", async (message) => {
@@ -81,119 +107,146 @@ client.on("messageCreate", async (message) => {
                   );
                 }  
                 
-              const url = message.content
+            const url = message.content
 
-
-              if(url.includes('youtube')){
-               if(url.includes('list')){
-                    
+            if(url.startsWith('https')){
                 
-                        try {
-                        const playlist = await playlist_info(url)
-                    
-                        const videos = await (await playlist.all_videos()).map(video => {
-                            return {
-                                title: video.title,
-                                url: video.url
-                            };
-                        })
-                    
-                        await videos.map(async video => {
+              const connection = await joinVoiceChannel({
+                channelId: voiceChannel.id,
+                guildId: message.guild.id,
+                adapterCreator: message.guild.voiceAdapterCreator
+            })
 
-                            const music = await stream(video.url)
+                const sub = await connection.subscribe(player)
 
-                            const resource = await createAudioResource(music.stream, {
-                                metadata: {
-                                    title: `${music.title}`
-                                },
-                                inputType: music.type
-                            });
+                if(sub){
+                    if(url.includes('youtube')){
+                        if(url.includes('list')){
+                         
+                                 try {
+                                 const playlist = await playlist_info(url)
+                             
+                                 const videos = await (await playlist.all_videos()).map(video => {
+         
+                                     queue.push({
+                                         url: video.url,
+                                         title: video.title
+                                     })
+                                 })
+
+                                 
+                                    const song = queue.shift()
+                              
+                                    const music = await stream(song.url)
+                        
+                                    const resource = await createAudioResource(music.stream, {
+                                            metadata: {
+                                            title: `${song.title}`
+                                        },
+                                        inputType: music.type
+                                   });
+                        
+                                    await player.play(resource)
+                           
+
+                                 const keepPlaying = async () => {
+         
+   
+                                    if(queue.length > 0){
+                                        const song = queue.shift()
+                                        console.log(song)
+                                        const music = await stream(song.url)
                             
-                            if(resource){
+                                        const resource = await createAudioResource(music.stream, {
+                                                metadata: {
+                                                title: `${song.title}`
+                                            },
+                                            inputType: music.type
+                                       });
+                            
+                                        await player.play(resource)
+                                    }else {
+                                        message.channel.send({
+                                            content: "Signing out!"
+                                        })
+                                
+                                        const disconnect = await connection.disconnect()
+                                
+                                        if(disconnect) return
+                                    }
                             
                                 
-                                const connection = await joinVoiceChannel({
-                                    channelId: voiceChannel.id,
-                                    guildId: message.guild.id,
-                                    adapterCreator: message.guild.voiceAdapterCreator
-                                })
-                
-                                if(connection){
-                                    await player.play(resource)
-
-                                    player.on("stateChange", listener => {
-                                        console.log(listener.status)
-                                    })
-                                    await connection.subscribe(player)
-                                    
+                                
                                 }
+                                
+                               
+                                player.on(AudioPlayerStatus.Idle, () => {
+                                    keepPlaying()
+                                });   
+                       
+                                
+         
+                                 } catch (error) {
+                                     console.log(error)
+                                 }
+         
+         
+         
+         
+                        }else{
+                         try {
+                             
+                             const songInfo = await video_basic_info(url)
+                             
+                             const song = {
+                                 title: songInfo.video_details.title,
+                                 url: songInfo.video_details.url
+                             };
+             
+                             const music = await stream(song.url)
+                             
+                             const resource = await createAudioResource(music.stream, {
+                                 metadata: {
+                                     title: `${song.title}`
+                                 },
+                                 inputType: music.type
+                             });
+                             
+                             if(resource){
+                                
+                                 await player.play(resource)
+                                 
+                                 player.on(AudioPlayerStatus.Idle, () => {
+                                    connection.disconnect()
+                                });
+                             }
+             
+                             
+                            } catch (error) {
+                                console.log(error)
                             }
-                        })
-                        
-                       
-                    
-                        } catch (error) {
-                            console.log(error)
                         }
-
-
-
-
-               }else{
-                try {
-                    
-                    const songInfo = await video_basic_info(url)
-                    
-                    const song = {
-                        title: songInfo.video_details.title,
-                        url: songInfo.video_details.url
-                    };
-    
-                    const music = await stream(song.url)
-                    
-                    const resource = await createAudioResource(music.stream, {
-                        metadata: {
-                            title: `${song.title}`
-                        },
-                        inputType: music.type
-                    });
-                    
-                    if(resource){
-                       
-                        await player.play(resource)
+         
                         
-                        const connection = await joinVoiceChannel({
-                            channelId: voiceChannel.id,
-                            guildId: message.guild.id,
-                            adapterCreator: message.guild.voiceAdapterCreator
-                        })
-        
-                        if(connection){
-                            await connection.subscribe(player)
-                        }
-                    }
-    
-                    
-                   } catch (error) {
-                       console.log(error)
-                   }
-               }
-
-               
-              }
-
-              if(url.includes('spotify')){
-
-                try {
-
-               
-                    
-                    
-                } catch (error) {
-                    console.log(error)
+                       }
+         
+                       if(url.includes('spotify')){
+         
+                         try {
+         
+                        
+                             
+                             
+                         } catch (error) {
+                             console.log(error)
+                         }
+                         
+                       }
                 }
-                
-              }
+            }
+
+            if(!(url.startsWith('https'))) return message.channel.send("Only links are accepted here!")
+          
         }
 
         
@@ -203,6 +256,8 @@ client.on("messageCreate", async (message) => {
   player.on("error", async error => {
       console.log(error)
   });
+
+
 
 
   client.on('interactionCreate', async interaction => {
