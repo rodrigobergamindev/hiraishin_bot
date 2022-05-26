@@ -91,16 +91,16 @@ client.on("messageCreate", async (message) => {
                         try {
                         const playlist = await playlist_info(url)
                     
-                        const videos = await (await playlist.all_videos()).map(video => video)
-                    
-                        await videos.map(async video => {
-                            
-                            const song = {
+                        const videos = await (await playlist.all_videos()).map(video => {
+                            return {
                                 title: video.title,
                                 url: video.url
                             };
+                        })
+                    
+                        await videos.map(async video => {
 
-                            const music = await stream(song.url)
+                            const music = await stream(video.url)
 
                             const resource = await createAudioResource(music.stream, {
                                 metadata: {
@@ -110,8 +110,7 @@ client.on("messageCreate", async (message) => {
                             });
                             
                             if(resource){
-                               
-                                await player.play(resource)
+                            
                                 
                                 const connection = await joinVoiceChannel({
                                     channelId: voiceChannel.id,
@@ -120,7 +119,13 @@ client.on("messageCreate", async (message) => {
                                 })
                 
                                 if(connection){
+                                    await player.play(resource)
+
+                                    player.on("stateChange", listener => {
+                                        console.log(listener.status)
+                                    })
                                     await connection.subscribe(player)
+                                    
                                 }
                             }
                         })
