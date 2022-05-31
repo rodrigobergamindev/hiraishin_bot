@@ -68,22 +68,36 @@ const player = createAudioPlayer({
 
 const keepPlaying = async () => {
              
-       
-    if(queue.length > 0){
-        const song = queue[0]
 
-        const stream = await ytdl(song, {
-            filter:'audioonly',
-            quality: 'highestaudio'
+    try {
+        if(queue.length > 0){
+            const song = queue[0]
             
-        })
-        
 
-        const resource = await createAudioResource(stream);
-        
+            return await new Promise(async (resolve, reject) => {
+               const stream = await ytdl(song, {
+                    filter:'audioonly',
+                    quality: 'highestaudio'
+                    
+                })
+                .on('error', err => reject(err))
+                .on('data', async () => {
+                   
+                    const resource = await createAudioResource(stream)
+                    await player.play(resource)
+                    
+                    resolve()
+                })
 
-        await player.play(resource)
+            })
+           
+        }
+        
+    } catch (error) {
+        console.log(error)
     }
+       
+   
 
     
 
@@ -92,9 +106,9 @@ const keepPlaying = async () => {
 
 
 
-player.on(AudioPlayerStatus.Idle, () => {
+player.on(AudioPlayerStatus.Idle, async () => {
     queue.shift()
-    keepPlaying()
+    await keepPlaying()
 }) 
 
 
@@ -131,7 +145,7 @@ client.on("messageCreate", async (message) => {
 
             if(message.content === '!next'){
                 queue.shift()
-                keepPlaying()
+                await keepPlaying()
             }
 
             if(message.content === '!pause'){
@@ -139,7 +153,7 @@ client.on("messageCreate", async (message) => {
             }
 
             if(message.content === '!continue'){
-                keepPlaying()
+               await keepPlaying()
             }
 
             if(message.content === '!exit'){
@@ -172,7 +186,7 @@ client.on("messageCreate", async (message) => {
                                  if(player.state.status === 'idle'){
                                     if(queue.length > 0){
                                     
-                                        keepPlaying()
+                                       await keepPlaying()
                                         message.reply("Tracks are added in queue")
                                        
                                      }
@@ -198,7 +212,7 @@ client.on("messageCreate", async (message) => {
                                 if(queue.length > 0){
                                  
                                     
-                                    keepPlaying()
+                                    await keepPlaying()
                                     message.reply("Track added in queue")
                                    
                                  }
