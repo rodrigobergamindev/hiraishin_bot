@@ -1,3 +1,4 @@
+global.AbortController = require("node-abort-controller").AbortController;
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { REST } = require('@discordjs/rest');
 const { default: axios } = require('axios');
@@ -6,18 +7,12 @@ const { Routes } = require('discord-api-types/v9');
 const {AudioPlayer, NoSubscriberBehavior, createAudioResource, AudioPlayerStatus, joinVoiceChannel, getVoiceConnection} = require('@discordjs/voice')
 const { createAudioPlayer } = require('@discordjs/voice');
 const {playlist_info} = require('play-dl')
-const {Spotify} = require('spotifydl-core')
-global.AbortController = require("node-abort-controller").AbortController;
+
 
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 const ffmpeg = require('fluent-ffmpeg');
 const ytdl = require('ytdl-core');
 ffmpeg.setFfmpegPath(ffmpegPath);
-
-const spotify = new Spotify({
-    clientId: '453811a2f01a43fbb39b1a38b7d3d273',
-    clientSecret: 'a863a5be635e4c8b9a01ff472c2c8c31'
-})
 
 let queue = []
 
@@ -75,7 +70,7 @@ const keepPlaying = async () => {
              
        
     if(queue.length > 0){
-        const song = queue[0].url
+        const song = queue[0]
 
         const stream = await ytdl(song, {
             filter:'audioonly',
@@ -147,7 +142,8 @@ client.on("messageCreate", async (message) => {
                 keepPlaying()
             }
 
-            if(message.content === '!exit'){    
+            if(message.content === '!exit'){
+                queue = []   
                 message.channel.send({
                     content: "Signing out!"
                 })
@@ -169,10 +165,7 @@ client.on("messageCreate", async (message) => {
                                  
                              
                                  const videos = await (await playlist.all_videos()).map(video => {
-                                     queue.push({
-                                         url: video.url,
-                                         title: video.title
-                                     })
+                                     queue.push(video.url)
                                  })
 
 
@@ -198,12 +191,8 @@ client.on("messageCreate", async (message) => {
                         }else{
                          try {
                             
-                            const musicInfo = await ytdl.getBasicInfo(url)
-                            const song = {
-                                url,
-                                title: musicInfo.videoDetails.title
-                            }
-                            queue.push(song)
+        
+                            queue.push(url)
 
                             if(player.state.status === 'idle'){
                                 if(queue.length > 0){
