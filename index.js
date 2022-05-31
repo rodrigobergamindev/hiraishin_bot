@@ -5,11 +5,13 @@ const { Client, Intents, MessageEmbed } = require('discord.js');
 const { Routes } = require('discord-api-types/v9');
 const {AudioPlayer, NoSubscriberBehavior, createAudioResource, AudioPlayerStatus, joinVoiceChannel, getVoiceConnection} = require('@discordjs/voice')
 const { createAudioPlayer } = require('@discordjs/voice');
-const { video_basic_info, stream, search, playlist_info } = require('play-dl');
+const {playlist_info} = require('play-dl')
 const {Spotify} = require('spotifydl-core')
+global.AbortController = require("node-abort-controller").AbortController;
 
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 const ffmpeg = require('fluent-ffmpeg');
+const ytdl = require('ytdl-core');
 ffmpeg.setFfmpegPath(ffmpegPath);
 
 const spotify = new Spotify({
@@ -17,18 +19,9 @@ const spotify = new Spotify({
     clientSecret: 'a863a5be635e4c8b9a01ff472c2c8c31'
 })
 
-
-const player = createAudioPlayer({
-	behaviors: {
-		noSubscriber: NoSubscriberBehavior.Play,
-	},
-});
+let queue = []
 
 require('dotenv').config();
-
-//const {PrismaClient} = require('@prisma/client')
-
-//const prisma = new PrismaClient()
 
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, 
@@ -37,6 +30,9 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS,
     Intents.FLAGS.GUILD_MEMBERS,
     Intents.FLAGS.GUILD_VOICE_STATES,
 ] });
+
+
+
 
 
 
@@ -68,32 +64,43 @@ client.once('ready', async data => {
     
 });
 
-let queue = []
+
+const player = createAudioPlayer({
+	behaviors: {
+		noSubscriber: NoSubscriberBehavior.Play,
+	},
+});
 
 const keepPlaying = async () => {
-         
-   
-        if(queue.length > 0){
-            const song = queue.shift()
-            console.log(song)
-            const music = await stream(song.url)
+             
+       
+    if(queue.length > 0){
+        const song = queue[0].url
 
-            const resource = await createAudioResource(music.stream, {
-                    metadata: {
-                    title: `${song.title}`
-                },
-                inputType: music.type
-           });
+        const stream = await ytdl(song, {
+            filter:'audioonly',
+            quality: 'highestaudio'
+            
+        })
+        
 
-            await player.play(resource)
-            return true
-        }else {
-            return false
-        }
+        const resource = await createAudioResource(stream);
+        
+
+        await player.play(resource)
+    }
 
     
+
+    }
     
-}
+
+
+
+player.on(AudioPlayerStatus.Idle, () => {
+    queue.shift()
+    keepPlaying()
+}) 
 
 
 client.on("messageCreate", async (message) => {
@@ -119,83 +126,68 @@ client.on("messageCreate", async (message) => {
                 
             const url = message.content
 
-            if(url.startsWith('https')){
-                
-              const connection = await joinVoiceChannel({
+            const connection = await joinVoiceChannel({
                 channelId: voiceChannel.id,
                 guildId: message.guild.id,
                 adapterCreator: message.guild.voiceAdapterCreator
-            })
+                })
 
                 const sub = await connection.subscribe(player)
 
+            if(message.content === '!next'){
+                queue.shift()
+                keepPlaying()
+            }
+
+            if(message.content === '!pause'){
+                player.pause()
+            }
+
+            if(message.content === '!continue'){
+                keepPlaying()
+            }
+
+            if(message.content === '!exit'){    
+                message.channel.send({
+                    content: "Signing out!"
+                })
+        
+                const disconnect = await connection.disconnect()
+        
+                if(disconnect) return
+            }
+           
+            if(url.startsWith('https')){
+
                 if(sub){
                     if(url.includes('youtube')){
+                   
                         if(url.includes('list')){
                          
                                  try {
                                  const playlist = await playlist_info(url)
+                                 
                              
                                  const videos = await (await playlist.all_videos()).map(video => {
-         
                                      queue.push({
                                          url: video.url,
                                          title: video.title
                                      })
                                  })
 
-                                 
-                                    const song = queue.shift()
-                              
-                                    const music = await stream(song.url)
-                        
-                                    const resource = await createAudioResource(music.stream, {
-                                            metadata: {
-                                            title: `${song.title}`
-                                        },
-                                        inputType: music.type
-                                   });
-                        
-                                    await player.play(resource)
-                           
 
-                                 const keepPlaying = async () => {
-         
-   
+                                 if(player.state.status === 'idle'){
                                     if(queue.length > 0){
-                                        const song = queue.shift()
-                                        console.log(song)
-                                        const music = await stream(song.url)
-                            
-                                        const resource = await createAudioResource(music.stream, {
-                                                metadata: {
-                                                title: `${song.title}`
-                                            },
-                                            inputType: music.type
-                                       });
-                            
-                                        await player.play(resource)
+                                    
+                                        keepPlaying()
+                                        message.reply("Tracks are added in queue")
+                                       
+                                     }
+                                    
+
                                     }else {
-                                        message.channel.send({
-                                            content: "Signing out!"
-                                        })
-                                
-                                        const disconnect = await connection.disconnect()
-                                
-                                        if(disconnect) return
+                                        message.reply("Tracks are added in queue")
                                     }
-                            
-                                
-                                
-                                }
-                                
-                               
-                                player.on(AudioPlayerStatus.Idle, () => {
-                                    keepPlaying()
-                                });   
-                       
-                                
-         
                                  } catch (error) {
                                      console.log(error)
                                  }
@@ -205,31 +197,25 @@ client.on("messageCreate", async (message) => {
          
                         }else{
                          try {
-                             
-                             const songInfo = await video_basic_info(url)
-                             
-                             const song = {
-                                 title: songInfo.video_details.title,
-                                 url: songInfo.video_details.url
-                             };
-             
-                             const music = await stream(song.url)
-                             
-                             const resource = await createAudioResource(music.stream, {
-                                 metadata: {
-                                     title: `${song.title}`
-                                 },
-                                 inputType: music.type
-                             });
-                             
-                             if(resource){
-                                
-                                 await player.play(resource)
+                            
+                            const musicInfo = await ytdl.getBasicInfo(url)
+                            const song = {
+                                url,
+                                title: musicInfo.videoDetails.title
+                            }
+                            queue.push(song)
+
+                            if(player.state.status === 'idle'){
+                                if(queue.length > 0){
                                  
-                                 player.on(AudioPlayerStatus.Idle, () => {
-                                    connection.disconnect()
-                                });
-                             }
+                                    
+                                    keepPlaying()
+                                    message.reply("Track added in queue")
+                                   
+                                 }
+                            }else{
+                                message.reply("Track added in queue")
+                            }
              
                              
                             } catch (error) {
@@ -240,38 +226,10 @@ client.on("messageCreate", async (message) => {
                         
                        }
          
-                       if(url.includes('spotify')){
-         
-                         try {
-
-                           
-                            const name = new Date().getTime()
-                           
-                            const track = await spotify.downloadTrack(url, `${name}.mp3`)
-         
-                           if(track){
-                            const resource = await createAudioResource(`${name}.mp3`);
-
-                            if(resource){
-                                await player.play(resource)
-                                
-                                player.on(AudioPlayerStatus.Idle, () => {
-                                   connection.disconnect()
-                               });
-                            }
-                           }
-            
-
-                             
-                         } catch (error) {
-                             console.log(error)
-                         }
-                         
-                       }
                 }
             }
 
-            if(!(url.startsWith('https'))) return message.channel.send("Only links are accepted here!")
+            if(!(url.startsWith('https') || url.startsWith('!'))) return message.channel.send("Only links are accepted here!")
           
         }
 
@@ -282,7 +240,7 @@ client.on("messageCreate", async (message) => {
   player.on("error", async error => {
       console.log(error)
   });
-
+ 
 
 
 
@@ -315,13 +273,16 @@ client.on("messageCreate", async (message) => {
                                 .setColor('#ff3838')
                                 .setTitle('Hi, im Hiraishin, lets play the music.')
                                 .setAuthor({name: `Hiraishin`})
-                                .setDescription(`The perfect music bot! Feature rich with high quality music!`)
+                                .setDescription(`Escolha o canal hiraishin e coloque a url da música ou playlist que deseja tocar`)
                                 .setThumbnail('https://img.icons8.com/external-justicon-flat-justicon/64/000000/external-headphone-rock-and-roll-justicon-flat-justicon.png')
                                 .addFields(
                                     { name: '\u200b', value: '\u200b', inline: false, },
                                     { name: '/hiraishin', value: 'lista com todos os comandos' },
+                                    { name: '!next', value: 'Avança para a próxima música da playlist'},
+                                    { name: '!pause', value: 'Pausa a playlist'},
+                                    { name: '!exit', value: 'Cancela a execução da playlist'}
                                 )
-                                .setImage('https://cdnb.artstation.com/p/assets/images/images/009/089/349/4k/alexander-dudar-city-view.jpg?1517073959')
+                                .setImage('https://i.imgur.com/0emvlG0.jpeg')
                                 .setTimestamp()
                                 .setFooter({ text: 'Art must exist beyond comprehension', iconURL: 'https://i.imgur.com/7Mp1lV5.png' });
 
