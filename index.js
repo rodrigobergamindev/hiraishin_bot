@@ -134,6 +134,8 @@ client.on("messageCreate", async (message) => {
                 if(queue.length > 0){
                     queue.shift()
                     await keepPlaying()
+
+                    message.reply('Going to the next track!')
                 }
             }
 
