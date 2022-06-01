@@ -1,20 +1,13 @@
 global.AbortController = require("node-abort-controller").AbortController;
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { REST } = require('@discordjs/rest');
-const { default: axios } = require('axios');
 const { Client, Intents, MessageEmbed } = require('discord.js');
 const { Routes } = require('discord-api-types/v9');
-const {AudioPlayer, NoSubscriberBehavior, createAudioResource, AudioPlayerStatus, joinVoiceChannel, getVoiceConnection} = require('@discordjs/voice')
+const {NoSubscriberBehavior, createAudioResource, AudioPlayerStatus, joinVoiceChannel} = require('@discordjs/voice')
 const { createAudioPlayer } = require('@discordjs/voice');
-const {playlist_info} = require('play-dl')
+const {playlist_info, stream} = require('play-dl')
 
 
-const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
-const ffmpeg = require('fluent-ffmpeg');
-const ytdl = require('ytdl-core');
-ffmpeg.setFfmpegPath(ffmpegPath);
-
-let queue = []
 
 require('dotenv').config();
 
@@ -59,6 +52,7 @@ client.once('ready', async data => {
     
 });
 
+let queue = []
 
 const player = createAudioPlayer({
 	behaviors: {
@@ -69,33 +63,26 @@ const player = createAudioPlayer({
 const keepPlaying = async () => {
              
 
-    try {
+       
         if(queue.length > 0){
+            
             const song = queue[0]
             
-
-            return await new Promise(async (resolve, reject) => {
-               const stream = await ytdl(song, {
-                    filter:'audioonly',
-                    quality: 'highestaudio'
-                    
+            
+            
+               const track = await stream(song, {
+                   discordPlayerCompatibility: true,
+                   quality: 2
+               })
+               
+                const resource = await createAudioResource(track.stream, {
+                    inputType: track.type
                 })
-                .on('error', err => reject(err))
-                .on('data', async () => {
+                await player.play(resource)
                    
-                    const resource = await createAudioResource(stream)
-                    await player.play(resource)
-                    
-                    resolve()
-                })
-
-            })
            
         }
-        
-    } catch (error) {
-        console.log(error)
-    }
+
        
    
 
@@ -144,8 +131,10 @@ client.on("messageCreate", async (message) => {
                 const sub = await connection.subscribe(player)
 
             if(message.content === '!next'){
-                queue.shift()
-                await keepPlaying()
+                if(queue.length > 0){
+                    queue.shift()
+                    await keepPlaying()
+                }
             }
 
             if(message.content === '!pause'){
@@ -158,13 +147,18 @@ client.on("messageCreate", async (message) => {
 
             if(message.content === '!exit'){
                 queue = []   
-                message.channel.send({
-                    content: "Signing out!"
-                })
-        
-                const disconnect = await connection.disconnect()
-        
-                if(disconnect) return
+                
+                if(queue.length === 0){
+                    message.channel.send({
+                        content: "Signing out!"
+                        
+                    })
+                    player.stop()
+                    const disconnect = await connection.disconnect()
+            
+                    if(disconnect) return
+                    
+                }
             }
            
             if(url.startsWith('https')){
@@ -193,6 +187,7 @@ client.on("messageCreate", async (message) => {
                                     
 
                                     }else {
+                                        
                                         message.reply("Tracks are added in queue")
                                     }
                                  } catch (error) {
@@ -207,16 +202,17 @@ client.on("messageCreate", async (message) => {
                             
         
                             queue.push(url)
-
+                            
                             if(player.state.status === 'idle'){
                                 if(queue.length > 0){
                                  
-                                    
+                                
                                     await keepPlaying()
                                     message.reply("Track added in queue")
-                                   
+                                    
                                  }
                             }else{
+                                
                                 message.reply("Track added in queue")
                             }
              
