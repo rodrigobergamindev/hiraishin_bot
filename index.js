@@ -160,9 +160,9 @@ client.on("messageCreate", async (message) => {
                     
                 }
             }
-           
+            
             if(url.startsWith('https')){
-
+                if(!(url.startsWith('https') || url.startsWith('!'))) return message.channel.send("Only links are accepted here!")
                 if(sub){
                     if(url.includes('youtube')){
                    
@@ -223,13 +223,16 @@ client.on("messageCreate", async (message) => {
                         }
          
                         
+                       }else{
+                           message.reply({
+                               content: 'Only Youtube links are accepted here!'
+                           })
                        }
          
                 }
             }
 
-            if(!(url.startsWith('https') || url.startsWith('!'))) return message.channel.send("Only links are accepted here!")
-          
+            
         }
 
         
@@ -272,7 +275,7 @@ client.on("messageCreate", async (message) => {
                                 .setColor('#ff3838')
                                 .setTitle('Hi, im Hiraishin, lets play the music.')
                                 .setAuthor({name: `Hiraishin`})
-                                .setDescription(`Escolha o canal hiraishin e coloque a url da música ou playlist que deseja tocar`)
+                                .setDescription(`Escolha o canal hiraishin e coloque a url da música ou playlist que deseja tocar, apenas links do Youtube são aceitos.`)
                                 .setThumbnail('https://img.icons8.com/external-justicon-flat-justicon/64/000000/external-headphone-rock-and-roll-justicon-flat-justicon.png')
                                 .addFields(
                                     { name: '\u200b', value: '\u200b', inline: false, },
