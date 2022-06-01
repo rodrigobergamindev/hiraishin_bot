@@ -162,9 +162,9 @@ client.on("messageCreate", async (message) => {
             }
             
             if(url.startsWith('https')){
-                if(!(url.startsWith('https') || url.startsWith('!'))) return message.channel.send("Only links are accepted here!")
+                
                 if(sub){
-
+    
                     if(!(url.includes('youtube'))){
                         message.reply({
                             content: 'Only Youtube links are accepted here!'
